@@ -1,0 +1,6 @@
+.table-bordered thead th {
+    border-color: #666666;
+    font-weight: 400;
+    color: white;
+    background-color: gray;
+}

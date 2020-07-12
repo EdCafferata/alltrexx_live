@@ -1,0 +1,29 @@
+.time {
+  width: auto;
+  padding: 30px 30px;
+  background-color: #333333;
+  box-shadow: 2px 2px 5px black;
+  text-align: center;
+}
+
+.clock {
+  color: #eeeeee;
+  font-size: 50px;
+}
+
+.day {
+  color: #eeeeee;
+  font-size: 200px;
+  margin: -50px 0;
+}
+
+.month,
+.year {
+  color: #eeeeee;
+  font-size: 30px;
+}
+
+.weekday {
+  color: #eeeeee;
+  font-size: 50px;
+}
