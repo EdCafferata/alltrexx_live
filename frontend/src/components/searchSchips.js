@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import SchipsData from "./searchSchips-import.json";
 import axios from 'axios'
-import accessToken from "../http-common";
 
 const schipdata = SchipsData
 console.log(schipdata);
@@ -25,7 +24,7 @@ class searchSchips extends Component {
 
     componentDidMount() {
         axios
-            .get("/searchSchips" + accessToken)
+            .get("/api/schips/")
             .then(response => {
                 console.log(schipdata);
                 console.log(response);

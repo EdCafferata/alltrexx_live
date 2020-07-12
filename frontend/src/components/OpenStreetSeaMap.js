@@ -8,8 +8,8 @@ import NmScale from "@marfle/react-leaflet-nmscale";
 const markersdata = markersData
 
 export const icon = new Icon({
-    iconUrl: './zeilboot.jpg',
-    iconSize: [24, 24]
+    iconUrl: "/zeilboot.svg",
+    iconSize: [41, 41]
 });
 
 export default function App() {

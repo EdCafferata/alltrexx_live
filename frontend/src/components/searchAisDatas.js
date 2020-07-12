@@ -2,7 +2,6 @@
 import React, {Component} from "react";
 import aisData from "./searchAisDatas-import.json";
 import axios from "axios";
-import accessToken from "../http-common";
 
 const aisdata = aisData
 console.log(aisData);
@@ -26,7 +25,7 @@ class searchAisDatas extends Component {
 
     componentDidMount() {
         axios
-            .get("/searchaisdatas" + accessToken)
+            .get("/api/aisdatas/")
             .then(response => {
                 console.log(aisdata);
                 console.log(response);

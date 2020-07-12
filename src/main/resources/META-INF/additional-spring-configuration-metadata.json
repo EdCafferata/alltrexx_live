@@ -1,13 +1,19 @@
 {
   "properties": [
     {
-      "name": "spring.mail.from.email" ,
-      "type": "java.lang.String" ,
+      "name": "spring.mail.from.email",
+      "type": "java.lang.String",
       "description": "Description for spring.mail.from.email."
-    } ,
+    },
     {
-      "name": "jwtSecret" ,
-      "type": "java.lang.String" ,
+      "name": "jwtSecret",
+      "type": "java.lang.String",
       "description": "Description for jwtSecret."
+    },
+
+    {
+      "name": "jwtExpirationMs",
+      "type": "java.lang.String",
+      "description": "Description for jwtExpirationMs."
     }
   ] }
