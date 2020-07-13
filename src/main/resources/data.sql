@@ -24,17 +24,20 @@ INSERT INTO AISDATA VALUES ('244620211', '133', '146', 'Ed', '52.739368', '5.528
 INSERT INTO AISDATA VALUES ('244620210', '133', '146', 'Ed', '52.564602', '5.476516', '123', '6', '0', '20200615 23:59.59');
 INSERT INTO AISDATA VALUES ('244620209', '133', '146', 'Ed', '52.537104', '5.437029', '123', '6', '0', '20200615 23:59.59');
 
-DROP TABLE IF EXITS roles;
+DROP TABLE IF EXISTS roles;
 CREATE TABLE roles (id INT, name VARCHAR(20));
 INSERT INTO roles(id,name) VALUES('1','ROLE_USER');
 INSERT INTO roles(id,name) VALUES('2','ROLE_SCHIPPER');
 INSERT INTO roles(id,name) VALUES('3','ROLE_ADMIN');
+
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (created_at VARCHAR, updated_at VARCHAR, email VARCHAR(50), password VARCHAR(125), username VARCHAR(25));
 INSERT INTO users(created_at, updated_at, email, password, username) VALUES ('2020-07-08 00:00:00', '2020-07-09 00:00:00', 'user@rondeomnoordholland.nl', '$2a$10$GckdgpfIJ.NhceNRgh6Aue4AX9fcrmA6mbRRU824UYl8tYAXd3GvG', 'user');
 INSERT INTO users(created_at, updated_at, email, password, username) VALUES ('2020-07-08 00:00:00', '2020-07-09 00:00:00', 'schipper@rondeomnoordholland.nl', '$2a$10$ozJqsGBy.S9uBPuPIFTYP.qzbbUiF5HPggzZXr/tpwehGuIZuVLae', 'schipper');
 INSERT INTO users(created_at, updated_at, email, password, username) VALUES ('2020-07-08 00:00:00', '2020-07-09 00:00:00', 'admin@rondeomnoordholland.nl', '$2a$10$CzuliGNQSRoi8IDMe/RUreQWpbmViC.E5qaZjhpAjypgfsOF9afyG', 'admin');
 
+DROP TABLE IF EXISTS user_roles;
 CREATE TABLE user_roles (user_id INT, role_id VARCHAR(20));
 INSERT INTO user_roles(user_id, role_id) VALUES ('1', '1');
 INSERT INTO user_roles(user_id, role_id) VALUES ('2', '1');

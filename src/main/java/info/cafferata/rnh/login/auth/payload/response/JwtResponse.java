@@ -1,8 +1,11 @@
 package login.auth.payload.response;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
-// Response JWT after validation (jwtUtils.java)
+// Response JWT after validation (jwtUtils.java) let op geen lombok gebruiken ivm error !!!
 public class JwtResponse {
 
     private String token;
@@ -55,4 +58,5 @@ public class JwtResponse {
     public List<String> getRoles() {
         return roles;
     }
+
 }

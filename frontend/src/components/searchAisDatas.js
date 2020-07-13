@@ -4,8 +4,8 @@ import jsonServerProvider from 'ra-data-json-server';
 import { searchAisPostList } from './searchAisDatasPostList';
 
 const searchAisDatas = () => (
-    <Admin dataProvider={jsonServerProvider('http://jsonplaceholder.typicode.com')}>
-        <Resource name="posts" list={searchAisPostList} />
+    <Admin dataProvider={jsonServerProvider('http://localhost:8080')}>
+        <Resource name="api/aisdatas/1" getlist={searchAisPostList} />
     </Admin>
 );
 

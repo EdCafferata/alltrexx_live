@@ -66,7 +66,7 @@ const Login = () => {
                         setLoading(true);
                         setError(null);
                         setTimeout(() => { // Time-out before redirect to the profile page
-                            window.location.assign("/profile");
+                            window.location.assign("/");
                         }, 1000);
                         setSuccess(true); // Activate success Material UI Snackbar
                         setOpen(true); // Open Material UI Snackbar

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor // Lombok to create the Required Args Constructor
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600) // Cross origin allowed for port 3000
 @RestController // Instruct Spring Boot that this is the REST Controller
 @RequestMapping("/api/auth") // Link to access GET/POST/PUT/DELETE requests
 public class AuthController {
