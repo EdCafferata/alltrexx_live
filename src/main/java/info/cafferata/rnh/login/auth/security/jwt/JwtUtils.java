@@ -15,10 +15,10 @@ public class JwtUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class); // Build logging messages (such as errors)
 
-    @Value("${cafferata.jwtSecret}") // Call JWT Secret Key from application.properties
+    @Value("codenetworkSecretKey") // Call JWT Secret Key from application.properties
     private String jwtSecret;
 
-    @Value("${cafferata.jwtExpirationMs}") // Call JWT Expiration time from application.properties
+    @Value("86400000") // Call JWT Expiration time from application.properties
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) { // Generate JSON WebToken
