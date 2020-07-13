@@ -1,8 +1,8 @@
 import * as React from "react";
-import { List, Datagrid, TextField } from 'react-admin';
+import { List, Datagrid, TextField, } from 'react-admin';
 
-export const PostList = (props) => (
-    <List {...props} title="RNH & YSY Schepen tracks / locaties ">
+export const searchAisPostList = (props) => (
+    <List {...props} title="RNH & YSY Schepen tracks / locaties" >
         <Datagrid>
             <TextField source="aisnummer" />
             <TextField source="status" />
