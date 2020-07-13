@@ -31,7 +31,6 @@ INSERT INTO roles(id,name) VALUES('2','ROLE_SCHIPPER');
 INSERT INTO roles(id,name) VALUES('3','ROLE_ADMIN');
 
 DROP TABLE IF EXISTS users;
-
 CREATE TABLE users (created_at VARCHAR, updated_at VARCHAR, email VARCHAR(50), password VARCHAR(125), username VARCHAR(25));
 INSERT INTO users(created_at, updated_at, email, password, username) VALUES ('2020-07-08 00:00:00', '2020-07-09 00:00:00', 'user@rondeomnoordholland.nl', '$2a$10$GckdgpfIJ.NhceNRgh6Aue4AX9fcrmA6mbRRU824UYl8tYAXd3GvG', 'user');
 INSERT INTO users(created_at, updated_at, email, password, username) VALUES ('2020-07-08 00:00:00', '2020-07-09 00:00:00', 'schipper@rondeomnoordholland.nl', '$2a$10$ozJqsGBy.S9uBPuPIFTYP.qzbbUiF5HPggzZXr/tpwehGuIZuVLae', 'schipper');

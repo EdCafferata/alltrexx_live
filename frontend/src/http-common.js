@@ -6,5 +6,3 @@ export default axios.create({
   baseURL: "http://localhost:8080/api",
   headers: AuthHeader(),
 });
-
-console.log( "kom  tot hier ?" );

@@ -34,7 +34,6 @@ const Router = () => {
         }} />
     )
 
-
     return(
         <Switch> {/* Create a switch frame, a frame in which component views can be switched */}
             <Route exact path="/login" component={Login} />
