@@ -1,3 +1,5 @@
+# Ed Cafferata versie: 0.9 datum: 20201025
+
 om de backend te starten ga in de root staan van project met een commandprompt en voer dit uit : mvn spring-boot:run
 om de frontend te starten ga naar root/frontend en geef dit commando: npm install/start.
 dan gaat er een browser open op port 3000 dit is de live reload server
