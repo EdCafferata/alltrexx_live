@@ -15,7 +15,5 @@ currently being supported with security updates.
 
 Mocht je iets vinden wat we kunnen verbeteren stuur dit dan direct naar: cafferata @ live.nl
 
-of anders https://www.facebook.com/ysy.rondeomnoordholland mag ook als het niet urgent is ;-)
-
 Met Vriendelijke Groet, Ed
 
