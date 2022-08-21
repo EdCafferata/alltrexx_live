@@ -13,7 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>rnh</name>
 	<description>RNH web application</description>
-	<!--	Java Development Kit 8-->
+	<!-- Java Development Kit 8-->
 	<properties>
 		<java.version>1.8</java.version>
 		<kotlin.version>1.3.61</kotlin.version>
