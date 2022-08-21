@@ -12,7 +12,7 @@
 	<artifactId>rnh</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>rnh</name>
-	<description>RNH web applicatie</description>
+	<description>RNH web application</description>
 	<!--	Java Development Kit 8-->
 	<properties>
 		<java.version>1.8</java.version>
@@ -23,11 +23,12 @@
 		<npm.version>5.0.0</npm.version>
 		<frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
 	</properties>
-	<!-- For Java 9 alvast toegevoegd ! nu nog niet in gebruik ivm Novi opleiding -->
+	<!-- For Java 9 added ! -->
 	<dependencies>
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
+			<version>2.4.0-b180830.0359</version>
 		</dependency>
 		<!-- For Java 8 Date/Time Support -->
 		<!-- JWT allows you to decode, verify and generate JWT tokens -->
@@ -41,6 +42,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-quartz</artifactId>
+			<version>2.7.3</version>
 		</dependency>
 		<!-- bean with the configuration that we supplied in the application -->
 		<dependency>
@@ -52,104 +54,122 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+			<version>2.7.3</version>
 		</dependency>
-		<!-- API for time- voor klok regatta bureau voor JAVA version 8 -->
+		<!-- API for time for clock regatta bureau for JAVA version 8 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.13.3</version>
 		</dependency>
 		<!-- Configuration processor Generates metadata about classes in your application that are annotated with properties -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>2.7.3</version>
 			<optional>true</optional>
 		</dependency>
 		<!-- focuses on providing both authentication and authorization to Java applications -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+			<version>2.7.3</version>
 		</dependency>
 		<!--Spring Boot Security Test -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
+			<version>5.7.3</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- driver voor DB -->
+		<!-- driver for DB -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+			<version>2.7.3</version>
 		</dependency>
 		<!-- Java specification for managing relational data in Java applications -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<version>2.7.3</version>
 		</dependency>
-		<!-- voor het gemak -->
+		<!-- to make easy -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<version>2.7.3</version>
 		</dependency>
 		<!-- open source Java-based framework to create a micro Service -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<version>2.7.3</version>
 		</dependency>
 		<!-- REST api helpers - DEV - -->
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-rest-hal-explorer</artifactId>
+			<version>3.7.2</version>
 		</dependency>
 		<!-- Developer Tool helpers :-)) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
+			<version>2.7.3</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		<!--Database- to save data deze is speciaal voor Novi -->
+		<!--Database- to save data -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
+			<version>2.1.214</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!--Database- to save data deze is speciaal voor PROD -->
+		<!--Database- to save data PROD -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.30</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!--Database- to save data deze is speciaal voor OTA omgevingen -->
+		<!--Database- to save data OTA -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<version>42.4.2</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
+			<version>2.7.3</version>
 		</dependency>
-		<!--Lombok cleans up code by making codes shorter geen getters/setters enz.. -->
+		<!--Lombok cleans up code by making codes shorter no getters/setters enz.. -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
 			<optional>true</optional>
 		</dependency>
 		<!-- ivm Full REst API -->
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>axios</artifactId>
-			<version>0.19.2</version>
+			<version>0.27.2</version>
 		</dependency>
 		<!-- Unit testing -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
 		</dependency>
 		<!-- dependency for testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<version>2.7.3</version>
 			<scope>test</scope>
 			<exclusions>
 				<!-- JUnit Testing platform for testing frameworks on JVM-->
@@ -159,25 +179,25 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- Helpers voor API zaken -->
+		<!-- Helpers for API -->
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<version>2.0.1.Final</version>
 		</dependency>
-		<!-- Helpers voor framework -->
+		<!-- Helpers for framework -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>5.2.6.RELEASE</version>
+			<version>5.3.22</version>
 		</dependency>
-		<!-- Helpers voor framework -->
+		<!-- Helpers for framework -->
 		<dependency>
 			<groupId>org.springframework.ws</groupId>
 			<artifactId>spring-ws-core</artifactId>
-			<version>3.0.9.RELEASE</version>
+			<version>3.1.3</version>
 		</dependency>
-		<!-- Dependency for mail API nodig voor RESETTEN en account aanmaken & remote monitoring -->
+		<!-- Dependency for mail API need for RESET en account create & remote monitoring -->
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mailapi</artifactId>
@@ -185,7 +205,7 @@
 		</dependency>
 	</dependencies>
 
-	<!-- om alles te laten starten en te compileren !.-->
+	<!--  to start and to compile !.-->
 	<build>
 		<sourceDirectory>${project.basedir}/src/main/java/info/cafferata/rnh</sourceDirectory>
 		<testSourceDirectory>${project.basedir}/src/test/java/info/cafferata/rnh</testSourceDirectory>
