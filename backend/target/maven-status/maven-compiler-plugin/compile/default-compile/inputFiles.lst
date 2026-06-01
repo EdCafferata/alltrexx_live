@@ -1,0 +1,12 @@
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/repository/TrackerRepository.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/service/TrackerService.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/controller/TrackerController.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/AlltrexxApplication.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/dto/PositieDto.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/model/Tracker.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/repository/PositieRepository.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/model/Positie.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/scheduler/MarineTrafficScheduler.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/model/TrackerType.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/controller/KaartController.java
+/Volumes/Backup-Ed/AI/alltrexx_live/backend/src/main/java/info/cafferata/alltrexx/config/SecurityConfig.java

@@ -1,0 +1,14 @@
+info/cafferata/alltrexx/repository/PositieRepository.class
+info/cafferata/alltrexx/model/Tracker$TrackerBuilder.class
+info/cafferata/alltrexx/model/TrackerType.class
+info/cafferata/alltrexx/config/SecurityConfig.class
+info/cafferata/alltrexx/model/Tracker.class
+info/cafferata/alltrexx/AlltrexxApplication.class
+info/cafferata/alltrexx/repository/TrackerRepository.class
+info/cafferata/alltrexx/service/TrackerService.class
+info/cafferata/alltrexx/controller/TrackerController.class
+info/cafferata/alltrexx/model/Positie.class
+info/cafferata/alltrexx/dto/PositieDto.class
+info/cafferata/alltrexx/scheduler/MarineTrafficScheduler.class
+info/cafferata/alltrexx/model/Positie$PositieBuilder.class
+info/cafferata/alltrexx/controller/KaartController.class
