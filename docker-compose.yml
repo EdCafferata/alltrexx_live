@@ -1,0 +1,68 @@
+version: '3.9'
+
+# ── Alltrexx Live — Docker Compose ──────────────────────────────────────────
+# Start met: docker-compose up -d
+# Stop met:  docker-compose down
+#
+# Op Synology NAS: gebruik Container Manager → Project → Importeer dit bestand
+
+services:
+
+  # ── MySQL database ──────────────────────────────────────────────────────────
+  database:
+    image: mysql:8.0
+    container_name: alltrexx-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_change_me}
+      MYSQL_DATABASE:      alltrexx
+      MYSQL_USER:          ${DB_USERNAME:-alltrexx}
+      MYSQL_PASSWORD:      ${DB_PASSWORD:-alltrexx_change_me}
+    volumes:
+      - alltrexx-db-data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Spring Boot backend ─────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: alltrexx-backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_USERNAME:            ${DB_USERNAME:-alltrexx}
+      DB_PASSWORD:            ${DB_PASSWORD:-alltrexx_change_me}
+      JWT_SECRET:             ${JWT_SECRET:-ChangeThisSecretInProduction!}
+      MARINETRAFFIC_API_KEY:  ${MARINETRAFFIC_API_KEY:-DEMO_KEY}
+      SPRING_DATASOURCE_URL:  jdbc:mysql://database:3306/alltrexx?useSSL=false&serverTimezone=Europe/Amsterdam
+    ports:
+      - "8080:8080"
+    volumes:
+      - alltrexx-logs:/app/logs
+
+  # ── React frontend (gebouwde static files via nginx) ────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: alltrexx-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  alltrexx-db-data:
+  alltrexx-logs:
