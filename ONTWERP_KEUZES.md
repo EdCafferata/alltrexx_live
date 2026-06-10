@@ -19,6 +19,7 @@ vijf opties** als op de site.
 | CAR | 🚗 | `#E65100` | Auto's |
 | PLANE | ✈️ | `#6A1B9A` | Vliegtuigen |
 | PERSON | 🚶 | `#00695C` | Personen |
+| TRAIN | 🚆 | `#C62828` | Treinen (toegevoegd 10 juni 2026 — "de vijf" zijn er nu zes) |
 
 Deze vijf komen overal terug: de floating knoppen, het lagen-paneel, de statusbalk,
 en straks het eerste-gebruik scherm van de mobile app. `ICOON_CONFIG` in
@@ -41,6 +42,7 @@ overlays aan:
 | 🚗 Auto kaart | OpenStreetMap | — (later: verkeer) |
 | ✈️ Vlieg kaart | CARTO Licht (rustig voor vluchten) | — (later: OpenAIP luchtvaartkaart, vergt API-key) |
 | 🚶 Wandel kaart | OpenTopoMap | Wandelroutes (Waymarked Trails) |
+| 🚆 Trein kaart | CARTO Licht | Spoorwegen (OpenRailwayMap) |
 
 **Overlays-sectie (alles standaard UIT):** hier staan álle beschikbare overlays
 die je los over elke kaart kan leggen — ook handmatig combineerbaar
@@ -48,6 +50,7 @@ die je los over elke kaart kan leggen — ook handmatig combineerbaar
 - ⚓ Nautische zeekaart (OpenSeaMap) — bewust **niet actief** standaard
 - 🚴 Fietsroutes (Waymarked Trails cycling)
 - 🥾 Wandelroutes (Waymarked Trails hiking)
+- 🚆 Spoorwegen (OpenRailwayMap standard)
 
 De oude generieke basiskaartlijst (Topografisch/Satelliet/Licht/Donker als losse
 keuzes) is vervangen door deze presets; de tiles zelf bestaan nog in `BASIS_TILES`
@@ -86,7 +89,8 @@ daarna landen ze met een veer-effect in de dock links.
 Niet direct zichtbare keuzes:
 - **Duur: 20 seconden**, óf eerder bij een klik/tik ergens (`pointerdown` op window)
 - **Snelheid per type, realistisch:** vliegtuig 28s, auto 45s, boot 60s,
-  fiets 90s (bewust veel trager), voetganger 120s per baan
+  fiets 90s (bewust veel trager), voetganger 120s, trein 35s per baan
+  (treinbaan is bewust rechter, als over spoorlijnen)
 - Elk type heeft een **eigen zweefbaan** (5 aparte keyframe-paden) zodat ze elkaar kruisen
 - Dobber-effect (deinen/kantelen) schaalt mee: rondetijd ÷ 12
 - Negatieve `animation-delay` zodat ze niet allemaal op hetzelfde punt starten

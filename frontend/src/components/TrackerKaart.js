@@ -12,6 +12,7 @@ export const ICOON_CONFIG = {
   CAR:    { emoji: '🚗', kleur: '#E65100', label: "Auto's"      },
   PLANE:  { emoji: '✈️', kleur: '#6A1B9A', label: 'Vliegtuigen' },
   PERSON: { emoji: '🚶', kleur: '#00695C', label: 'Personen'    },
+  TRAIN:  { emoji: '🚆', kleur: '#C62828', label: 'Treinen'     },
 };
 
 // ── Basiskaart-tiles ──────────────────────────────────────────────────────────
@@ -51,6 +52,11 @@ const OVERLAYS = {
     url: 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
     attribution: '© Waymarked Trails © OpenStreetMap',
   },
+  spoorwegen: {
+    label: '🚆 Spoorwegen (OpenRailwayMap)',
+    url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
+    attribution: '© OpenRailwayMap © OpenStreetMap',
+  },
 };
 
 // ── Kaartpresets: Standaard + één kant-en-klare kaart per type ───────────────
@@ -61,6 +67,7 @@ const KAART_PRESETS = {
   auto:      { label: '🚗 Auto kaart',    basis: 'osm',     overlays: [] },
   vlieg:     { label: '✈️ Vlieg kaart',   basis: 'licht',   overlays: [] },
   wandel:    { label: '🚶 Wandel kaart',  basis: 'topo',    overlays: ['wandelroutes'] },
+  trein:     { label: '🚆 Trein kaart',   basis: 'licht',   overlays: ['spoorwegen'] },
 };
 
 function maakIcoon(type, koers = 0) {
