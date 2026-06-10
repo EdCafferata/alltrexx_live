@@ -1,6 +1,6 @@
 .kaart-wrapper {
   position: relative;
-  height: calc(100vh - 60px);
+  height: 100vh;
   width: 100%;
   overflow: hidden;
 }
@@ -240,12 +240,19 @@
 
 .fab-screensaver .fab-item {
   position: absolute;
-  animation: zweef calc(28s + var(--fab-index) * 5s) ease-in-out infinite alternate;
+  animation: zweef var(--fab-duur, 60s) ease-in-out infinite alternate;
   animation-delay: calc(var(--fab-index) * -7s);
 }
 
+/* Snelheid per type — realistisch: vliegtuig snelst, voetganger traagst */
+.fab-screensaver .fab-item:nth-child(1) { --fab-duur: 60s;  } /* ⛵ Boten */
+.fab-screensaver .fab-item:nth-child(2) { --fab-duur: 90s;  } /* 🚴 Fietsen — veel trager */
+.fab-screensaver .fab-item:nth-child(3) { --fab-duur: 45s;  } /* 🚗 Auto's */
+.fab-screensaver .fab-item:nth-child(4) { --fab-duur: 28s;  } /* ✈️ Vliegtuigen — snelst */
+.fab-screensaver .fab-item:nth-child(5) { --fab-duur: 120s; } /* 🚶 Personen — traagst */
+
 .fab-screensaver .fab {
-  animation: dobber 4.5s ease-in-out infinite alternate;
+  animation: dobber calc(var(--fab-duur, 60s) / 12) ease-in-out infinite alternate;
   animation-delay: calc(var(--fab-index) * -1s);
 }
 
