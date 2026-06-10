@@ -2,6 +2,19 @@
   position: relative;
   height: calc(100vh - 60px);
   width: 100%;
+  overflow: hidden;
+}
+
+/* ── Liquid Glass basis (Apple-stijl) ───────────────────── */
+.glas {
+  background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    inset 0 -1px 0 rgba(255,255,255,0.15);
 }
 
 /* Tracker icoon */
@@ -57,25 +70,347 @@
   background: #0D47A1;
 }
 
-/* Status balk */
+/* ── Lagen-paneel ───────────────────────────────────────── */
+.lagen-knop {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.6);
+  background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+  z-index: 1001;
+  transition: transform 0.15s ease;
+}
+
+.lagen-knop:hover { transform: scale(1.06); }
+
+.lagen-paneel {
+  position: absolute;
+  top: 76px;
+  right: 16px;
+  width: 256px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.85);
+  z-index: 1001;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: paneel-in 0.25s ease;
+}
+
+@keyframes paneel-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.paneel-sectie { padding: 12px 14px; }
+
+.paneel-sectie + .paneel-sectie {
+  border-top: 1px solid rgba(255,255,255,0.5);
+}
+
+.paneel-titel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(60,60,67,0.6);
+  margin-bottom: 8px;
+}
+
+.paneel-rij {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 14px;
+  color: #1c1c1e;
+  cursor: pointer;
+}
+
+.seamap-rij {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(120,120,128,0.3);
+  font-weight: 600;
+}
+
+.paneel-type-rij {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.route-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+/* ── Floating glass buttons (5 typen) ───────────────────── */
+.fab-kolom {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 1001;
+}
+
+.fab-item { position: relative; }
+
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.65);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9), rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.15));
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  font-size: 25px;
+  cursor: pointer;
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.22),
+    inset 0 1px 1px rgba(255,255,255,0.95),
+    inset 0 -2px 4px rgba(0,0,0,0.06),
+    0 0 0 2px color-mix(in srgb, var(--fab-kleur) 35%, transparent);
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.fab:hover {
+  transform: scale(1.12);
+  box-shadow:
+    0 12px 36px rgba(0,0,0,0.28),
+    inset 0 1px 1px rgba(255,255,255,0.95),
+    0 0 0 3px color-mix(in srgb, var(--fab-kleur) 55%, transparent);
+}
+
+.fab-actief {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.65), color-mix(in srgb, var(--fab-kleur) 45%, transparent));
+}
+
+.fab-uit {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}
+
+.fab-teller {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--fab-kleur);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 9px;
+  padding: 0 3px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* ── Screensaver-intro: iconen zweven over het hele scherm ── */
+.fab-screensaver {
+  top: 0; left: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  gap: 0;
+}
+
+.fab-screensaver .fab-item {
+  position: absolute;
+  animation: zweef calc(28s + var(--fab-index) * 5s) ease-in-out infinite alternate;
+  animation-delay: calc(var(--fab-index) * -7s);
+}
+
+.fab-screensaver .fab {
+  animation: dobber 4.5s ease-in-out infinite alternate;
+  animation-delay: calc(var(--fab-index) * -1s);
+}
+
+.fab-screensaver .fab-menu { display: none; }
+
+/* Vijf verschillende zweefbanen over het scherm */
+@keyframes zweef {
+  0%   { top: 12%; left: 8%; }
+  25%  { top: 65%; left: 28%; }
+  50%  { top: 20%; left: 62%; }
+  75%  { top: 70%; left: 80%; }
+  100% { top: 35%; left: 45%; }
+}
+
+.fab-screensaver .fab-item:nth-child(2) { animation-name: zweef2; }
+.fab-screensaver .fab-item:nth-child(3) { animation-name: zweef3; }
+.fab-screensaver .fab-item:nth-child(4) { animation-name: zweef4; }
+.fab-screensaver .fab-item:nth-child(5) { animation-name: zweef5; }
+
+@keyframes zweef2 {
+  0%   { top: 75%; left: 85%; }
+  30%  { top: 15%; left: 55%; }
+  60%  { top: 55%; left: 12%; }
+  100% { top: 25%; left: 75%; }
+}
+
+@keyframes zweef3 {
+  0%   { top: 40%; left: 50%; }
+  30%  { top: 78%; left: 20%; }
+  60%  { top: 10%; left: 35%; }
+  100% { top: 60%; left: 70%; }
+}
+
+@keyframes zweef4 {
+  0%   { top: 18%; left: 78%; }
+  35%  { top: 62%; left: 60%; }
+  65%  { top: 30%; left: 15%; }
+  100% { top: 72%; left: 40%; }
+}
+
+@keyframes zweef5 {
+  0%   { top: 68%; left: 35%; }
+  30%  { top: 22%; left: 18%; }
+  65%  { top: 75%; left: 65%; }
+  100% { top: 15%; left: 88%; }
+}
+
+@keyframes dobber {
+  from { transform: translateY(-6px) rotate(-3deg); }
+  to   { transform: translateY(6px) rotate(3deg); }
+}
+
+/* Na de intro: zachte landing in de dock */
+.fab-kolom:not(.fab-screensaver) .fab-item {
+  animation: land 0.6s cubic-bezier(0.34, 1.4, 0.64, 1);
+  animation-delay: calc(var(--fab-index) * 0.07s);
+  animation-fill-mode: backwards;
+}
+
+@keyframes land {
+  from { opacity: 0; transform: translateX(-40px) scale(0.6); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ── FAB menu ───────────────────────────────────────────── */
+.fab-menu {
+  position: absolute;
+  left: 70px;
+  top: 0;
+  width: 234px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65);
+  border-left: 4px solid var(--fab-kleur);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.85);
+  padding: 12px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: paneel-in 0.25s ease;
+}
+
+.fab-menu-titel {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.fab-menu-knop {
+  margin-top: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--fab-kleur);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.fab-menu-knop:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.fab-menu-lijst {
+  margin-top: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255,255,255,0.5);
+  padding-top: 6px;
+}
+
+.fab-menu-tracker {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+}
+
+.fab-menu-tracker:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+.fab-menu-tracker span {
+  color: #888;
+  font-size: 12px;
+}
+
+.fab-menu-leeg {
+  font-size: 13px;
+  color: #999;
+  padding: 6px 4px;
+}
+
+/* ── Status balk (glas) ─────────────────────────────────── */
 .status-balk {
   position: absolute;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255,255,255,0.92);
+  background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.28));
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.6);
   border-radius: 24px;
   padding: 8px 20px;
   display: flex;
   gap: 16px;
   align-items: center;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
   z-index: 1000;
   font-size: 14px;
 }
 
 .status-item {
-  color: #333;
+  color: #1c1c1e;
   font-weight: 500;
 }
 
@@ -88,4 +423,10 @@
 @keyframes knipoog {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.3; }
+}
+
+/* Beweging beperken voor wie dat wil */
+@media (prefers-reduced-motion: reduce) {
+  .fab-screensaver .fab-item,
+  .fab-screensaver .fab { animation: none; }
 }
