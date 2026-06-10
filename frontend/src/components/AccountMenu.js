@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { logIn, logUit, huidigeGebruiker } from '../services/cloudkit';
+import { startLogin, logUit, huidigeGebruiker } from '../services/cloudkit';
 import './AccountMenu.css';
 
 // ── Logo-knop linksboven: account, login/registratie (CloudKit) en beheer ────
@@ -16,23 +16,25 @@ export default function AccountMenu() {
 
   useEffect(() => { huidigeGebruiker().then(setGebruiker); }, []);
 
-  const inloggen = async () => {
+  // Zodra het verplichte vinkje aan staat: CloudKit laten tekenen in
+  // #apple-sign-in-button en wachten tot de gebruiker daarmee inlogt.
+  useEffect(() => {
+    if (!akkoordNoodzakelijk || gebruiker) return;
     setFout(null); setBezig(true);
-    try {
-      const g = await logIn();
-      setGebruiker(g);
-      // Toestemmingskeuzes lokaal bewaren (niet op de server — site bewaart geen persoonsgegevens)
-      localStorage.setItem('alltrexx-consent', JSON.stringify({
-        noodzakelijk: true,
-        statistiek: akkoordStatistiek,
-        tijdstip: new Date().toISOString(),
-      }));
-    } catch (e) {
-      setFout(e.message);
-    } finally {
-      setBezig(false);
-    }
-  };
+    startLogin()
+      .then(g => {
+        setGebruiker(g);
+        // Toestemmingskeuzes lokaal bewaren (niet op de server)
+        localStorage.setItem('alltrexx-consent', JSON.stringify({
+          noodzakelijk: true,
+          statistiek: akkoordStatistiek,
+          tijdstip: new Date().toISOString(),
+        }));
+      })
+      .catch(e => setFout(e.message))
+      .finally(() => setBezig(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [akkoordNoodzakelijk]);
 
   const uitloggen = async () => {
     try { await logUit(); } catch { /* sessie lokaal opruimen volstaat */ }
@@ -123,10 +125,13 @@ export default function AccountMenu() {
                 </div>
               )}
 
-              <button className="account-knop" onClick={inloggen}
-                disabled={!akkoordNoodzakelijk || bezig}>
-                {bezig ? 'Bezig…' : ' Inloggen met Apple'}
-              </button>
+              {/* CloudKit JS tekent hier zelf de officiële Apple-knop */}
+              <div id="apple-sign-in-button" className="apple-knop-houder"
+                style={{ display: akkoordNoodzakelijk ? 'block' : 'none' }} />
+              {!akkoordNoodzakelijk && (
+                <div className="account-hint">Vink eerst de privacyverklaring aan.</div>
+              )}
+              {bezig && <div className="account-hint">Apple-knop laden…</div>}
               {fout && <div className="account-fout">⚠️ {fout}</div>}
             </>
           )}

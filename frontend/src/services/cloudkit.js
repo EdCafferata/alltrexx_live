@@ -39,12 +39,15 @@ export function laadCloudKit() {
   return ckLaadPromise;
 }
 
-// Inloggen met Apple ID — geeft { naam, email, isBeheerder } terug
-export async function logIn() {
+// Inloggen met Apple ID. CloudKit JS rendert zélf een Apple-knop in de div
+// met id "apple-sign-in-button" — die div moet bestaan vóór deze aanroep.
+// Resolve't pas nadat de gebruiker via die knop is ingelogd.
+export async function startLogin() {
   const container = await laadCloudKit();
-  const identity = await container.setUpAuth()
-    .then(id => id || container.whenUserSignsIn());
-  return identiteitNaarGebruiker(identity);
+  const identity = await container.setUpAuth(); // tekent de knop als uitgelogd
+  if (identity) return identiteitNaarGebruiker(identity); // was al ingelogd
+  const id = await container.whenUserSignsIn();
+  return identiteitNaarGebruiker(id);
 }
 
 export async function logUit() {
