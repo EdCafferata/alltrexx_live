@@ -14,33 +14,53 @@ export const ICOON_CONFIG = {
   PERSON: { emoji: '🚶', kleur: '#00695C', label: 'Personen'    },
 };
 
-// ── Basiskaarten ──────────────────────────────────────────────────────────────
-const BASISKAARTEN = {
+// ── Basiskaart-tiles ──────────────────────────────────────────────────────────
+const BASIS_TILES = {
   osm: {
-    label: 'Standaard',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '© <a href="https://osm.org/copyright">OpenStreetMap</a>',
   },
+  cyclosm: {
+    url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+    attribution: '© CyclOSM © OpenStreetMap',
+  },
   topo: {
-    label: 'Topografisch',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: '© OpenTopoMap (CC-BY-SA)',
   },
-  sat: {
-    label: 'Satelliet',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '© Esri World Imagery',
-  },
   licht: {
-    label: 'Licht',
     url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     attribution: '© CARTO © OpenStreetMap',
   },
-  donker: {
-    label: 'Donker',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '© CARTO © OpenStreetMap',
+};
+
+// ── Overlays die over elke kaart heen kunnen ─────────────────────────────────
+const OVERLAYS = {
+  seamap: {
+    label: '⚓ Nautische zeekaart (OpenSeaMap)',
+    url: 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',
+    attribution: '© <a href="https://www.openseamap.org">OpenSeaMap</a>',
   },
+  fietsroutes: {
+    label: '🚴 Fietsroutes (Waymarked Trails)',
+    url: 'https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',
+    attribution: '© Waymarked Trails © OpenStreetMap',
+  },
+  wandelroutes: {
+    label: '🥾 Wandelroutes (Waymarked Trails)',
+    url: 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
+    attribution: '© Waymarked Trails © OpenStreetMap',
+  },
+};
+
+// ── Kaartpresets: Standaard + één kant-en-klare kaart per type ───────────────
+const KAART_PRESETS = {
+  standaard: { label: '🗺️ Standaard',    basis: 'osm',     overlays: [] },
+  boot:      { label: '⛵ Boot kaart',    basis: 'osm',     overlays: ['seamap'] },
+  fiets:     { label: '🚴 Fiets kaart',   basis: 'cyclosm', overlays: ['fietsroutes'] },
+  auto:      { label: '🚗 Auto kaart',    basis: 'osm',     overlays: [] },
+  vlieg:     { label: '✈️ Vlieg kaart',   basis: 'licht',   overlays: [] },
+  wandel:    { label: '🚶 Wandel kaart',  basis: 'topo',    overlays: ['wandelroutes'] },
 };
 
 function maakIcoon(type, koers = 0) {
@@ -71,9 +91,18 @@ export default function TrackerKaart() {
   const [route, setRoute] = useState([]);
 
   // Kaartopties
-  const [basisKaart, setBasisKaart] = useState('osm');
-  const [seamapAan, setSeamapAan] = useState(true);
+  const [preset, setPreset] = useState('standaard');
+  const [overlaysAan, setOverlaysAan] = useState(
+    Object.fromEntries(Object.keys(OVERLAYS).map(k => [k, false]))
+  );
   const [lagenOpen, setLagenOpen] = useState(false);
+
+  const kiesPreset = (key) => {
+    setPreset(key);
+    setOverlaysAan(Object.fromEntries(
+      Object.keys(OVERLAYS).map(k => [k, KAART_PRESETS[key].overlays.includes(k)])
+    ));
+  };
 
   // Per type: zichtbaar + routes aan/uit
   const [typeOpties, setTypeOpties] = useState(() =>
@@ -134,22 +163,21 @@ export default function TrackerKaart() {
   const zetTypeOptie = (type, key, waarde) =>
     setTypeOpties(prev => ({ ...prev, [type]: { ...prev[type], [key]: waarde } }));
 
-  const basis = BASISKAARTEN[basisKaart];
+  const basis = BASIS_TILES[KAART_PRESETS[preset].basis];
 
   return (
     <div className="kaart-wrapper">
       <MapContainer center={[52.5, 5.0]} zoom={7} zoomControl={false}
         style={{ height: '100%', width: '100%' }}>
 
-        {/* Basiskaart */}
-        <TileLayer key={basisKaart} url={basis.url} attribution={basis.attribution} />
+        {/* Basiskaart volgens gekozen preset */}
+        <TileLayer key={preset} url={basis.url} attribution={basis.attribution} />
 
-        {/* Nautische zeekaart als overlay bovenop de basiskaart */}
-        {seamapAan && (
-          <TileLayer
-            url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
-            attribution='© <a href="https://www.openseamap.org">OpenSeaMap</a>'
-          />
+        {/* Actieve overlays bovenop de basiskaart */}
+        {Object.entries(OVERLAYS).map(([key, ov]) =>
+          overlaysAan[key] && (
+            <TileLayer key={`ov-${key}`} url={ov.url} attribution={ov.attribution} />
+          )
         )}
 
         <ZoomNaar doel={zoomDoel} />
@@ -223,21 +251,28 @@ export default function TrackerKaart() {
 
       {lagenOpen && (
         <div className="lagen-paneel">
-          {/* Bovendeel: basiskaarten + nautische zeekaart */}
+          {/* Bovendeel: kaartpresets — Standaard + één per type */}
           <div className="paneel-sectie">
-            <div className="paneel-titel">Basiskaart</div>
-            {Object.entries(BASISKAARTEN).map(([key, k]) => (
+            <div className="paneel-titel">Kaart</div>
+            {Object.entries(KAART_PRESETS).map(([key, k]) => (
               <label key={key} className="paneel-rij">
-                <input type="radio" name="basiskaart" checked={basisKaart === key}
-                  onChange={() => setBasisKaart(key)} />
+                <input type="radio" name="kaartpreset" checked={preset === key}
+                  onChange={() => kiesPreset(key)} />
                 <span>{k.label}</span>
               </label>
             ))}
-            <label className="paneel-rij seamap-rij">
-              <input type="checkbox" checked={seamapAan}
-                onChange={e => setSeamapAan(e.target.checked)} />
-              <span>⚓ Nautische zeekaart (OpenSeaMap)</span>
-            </label>
+          </div>
+
+          {/* Overlays: extra lagen over elke kaart heen (standaard uit) */}
+          <div className="paneel-sectie">
+            <div className="paneel-titel">Overlays</div>
+            {Object.entries(OVERLAYS).map(([key, ov]) => (
+              <label key={key} className="paneel-rij">
+                <input type="checkbox" checked={overlaysAan[key]}
+                  onChange={e => setOverlaysAan(prev => ({ ...prev, [key]: e.target.checked }))} />
+                <span>{ov.label}</span>
+              </label>
+            ))}
           </div>
 
           {/* Onderdeel: de vijf typen met zichtbaar + routes */}

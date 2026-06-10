@@ -29,17 +29,29 @@ andere schermen hem kunnen hergebruiken.
 
 Eigen paneel in plaats van de standaard Leaflet `LayersControl` — meer controle en mooier.
 
-**Bovendeel — basiskaarten (radio, één actief):**
-- Standaard (OpenStreetMap)
-- Topografisch (OpenTopoMap)
-- Satelliet (Esri World Imagery)
-- Licht (CARTO light_all)
-- Donker (CARTO dark_all)
+**Bovendeel — kaartpresets (radio, één actief):** Standaard + één kant-en-klare
+kaart per type. Een preset kiest een basiskaart én zet automatisch de passende
+overlays aan:
 
-**Bovendeel — aparte toggle:** ⚓ Nautische zeekaart (OpenSeaMap seamark-tiles).
-Bewust **uit de basiskaartlijst gehaald**: het is een transparante overlay die over
-élke basiskaart heen kan (bijv. satelliet + zeekaart). Standaard AAN.
-De oude dubbele "OpenStreetMap Nautisch"-basislaag (zelfde tiles als gewone OSM) is verwijderd.
+| Preset | Basiskaart | Overlay automatisch aan |
+|---|---|---|
+| 🗺️ Standaard | OpenStreetMap | — |
+| ⛵ Boot kaart | OpenStreetMap | Nautische zeekaart (OpenSeaMap) |
+| 🚴 Fiets kaart | CyclOSM | Fietsroutes (Waymarked Trails) |
+| 🚗 Auto kaart | OpenStreetMap | — (later: verkeer) |
+| ✈️ Vlieg kaart | CARTO Licht (rustig voor vluchten) | — (later: OpenAIP luchtvaartkaart, vergt API-key) |
+| 🚶 Wandel kaart | OpenTopoMap | Wandelroutes (Waymarked Trails) |
+
+**Overlays-sectie (alles standaard UIT):** hier staan álle beschikbare overlays
+die je los over elke kaart kan leggen — ook handmatig combineerbaar
+(bijv. Auto kaart + zeekaart):
+- ⚓ Nautische zeekaart (OpenSeaMap) — bewust **niet actief** standaard
+- 🚴 Fietsroutes (Waymarked Trails cycling)
+- 🥾 Wandelroutes (Waymarked Trails hiking)
+
+De oude generieke basiskaartlijst (Topografisch/Satelliet/Licht/Donker als losse
+keuzes) is vervangen door deze presets; de tiles zelf bestaan nog in `BASIS_TILES`
+en kunnen later weer als optie terugkomen.
 
 **Onderdeel — per type twee schakelaars:**
 - Zichtbaar-vinkje (markers tonen/verbergen) — standaard AAN
@@ -101,6 +113,40 @@ Niet direct zichtbare keuzes:
 - Popup per tracker: naam, snelheid, koers, hoogte (alleen indien > 0), tijdstip,
   route-knop
 - Demo: 9 demo-trackers via `DemoDataLoader` (alleen dev-modus)
+
+## Account & CloudKit (privacy-by-design)
+
+**Kernkeuze: de site/server slaat géén accounts of gevoelige data op.** Alles
+(identiteit én trackdata van alle 5 typen) staat in **Apple CloudKit**.
+
+- Logo-knop linksboven = account-menu: inloggen/registreren met Apple ID
+  (registratie gebeurt automatisch bij eerste login via CloudKit)
+- CloudKit JS via `frontend/src/services/cloudkit.js`; configuratie via `.env`:
+  `REACT_APP_CLOUDKIT_CONTAINER`, `REACT_APP_CLOUDKIT_API_TOKEN` (aanmaken in
+  CloudKit Dashboard → API Access), `REACT_APP_CLOUDKIT_ENV`
+- Trackdata: recordtype `Track` (trackerId, type, punten, opgeslagen) in de
+  **private database** van de gebruiker; beheer-zoekopdrachten op de publieke DB
+- Toestemmingskeuzes (AVG) worden alleen **lokaal** bewaard (localStorage), niet
+  op een server — er ís geen server met persoonsgegevens
+
+**AVG / GDPR in de login-flow:**
+- Verplicht vinkje: akkoord privacyverklaring + noodzakelijke verwerking (art. 6 lid 1a/1b)
+- Optioneel vinkje: anonieme statistieken
+- Inklapbare privacyverklaring met: wat/waar/grondslag/bewaartermijn, alle
+  rechten (inzage, rectificatie, vergetelheid, beperking, portabiliteit, bezwaar,
+  art. 15–21), EU-VS Data Privacy Framework, klachtrecht bij de Autoriteit
+  Persoonsgegevens, en intrekken van toestemming
+- Inloggen kan pas ná het verplichte vinkje
+
+**Beheerder:** logt `edcafferata@icloud.com` in, dan verschijnt bovenin een
+blauwe glazen beheersbalk met: 🔍 Data zoeken, ✏️ Gegevens aanpassen,
+📊 Rapportages, 👥 Gebruikers, ⚙️ Instellingen (knoppen zijn nu nog placeholders;
+functies volgen op CloudKit-queries). Check: e-mail uit de CloudKit-identiteit
+== `BEHEERDER_EMAIL` in `cloudkit.js`.
+
+**Let op (onzichtbare keuze):** CloudKit geeft het e-mailadres alleen mee als de
+gebruiker via e-mail vindbaar is (`lookupInfo`). De beheerdercheck werkt dus pas
+goed zodra de CloudKit-container en API-token echt geconfigureerd zijn.
 
 ## Repo-fixes (10 juni 2026)
 

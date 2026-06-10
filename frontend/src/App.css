@@ -9,8 +9,10 @@ body {
 
 main { height: 100%; overflow: hidden; }
 
-/* Klein glazen logo linksboven */
+/* Klein glazen logo linksboven — tevens account-knop */
 .logo-badge {
+  cursor: pointer;
+  font-family: inherit;
   position: absolute;
   top: 16px;
   left: 16px;
