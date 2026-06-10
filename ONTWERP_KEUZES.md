@@ -149,8 +149,20 @@ functies volgen op CloudKit-queries). Check: e-mail uit de CloudKit-identiteit
 == `BEHEERDER_EMAIL` in `cloudkit.js`.
 
 **Let op (onzichtbare keuze):** CloudKit geeft het e-mailadres alleen mee als de
-gebruiker via e-mail vindbaar is (`lookupInfo`). De beheerdercheck werkt dus pas
-goed zodra de CloudKit-container en API-token echt geconfigureerd zijn.
+gebruiker via e-mail vindbaar is (`lookupInfo`).
+
+**Status: werkend sinds 10 juni 2026.** Container `iCloud.cafferata.info.alltrexx`,
+API-token geconfigureerd via `frontend/.env` (zie `frontend/.env.example`; echte
+`.env` staat in .gitignore en komt nooit op GitHub).
+
+**Lessen uit het configureren (10 juni 2026):**
+- CloudKit JS rendert zijn **eigen** Apple-inlogknop in `<div id="apple-sign-in-button">`;
+  een eigen knop die `whenUserSignsIn()` aanroept blijft eeuwig wachten. De div
+  verschijnt zodra het verplichte AVG-vinkje aan staat.
+- Token-type moet **API Token** zijn (géén Server-to-Server key) met
+  **Sign in Callback** ingesteld op de site-URL (lokaal: http://localhost:3000).
+- React leest alleen `frontend/.env` met `REACT_APP_`-prefix — en pas na een
+  herstart van `npm start`.
 
 ## Repo-fixes (10 juni 2026)
 
