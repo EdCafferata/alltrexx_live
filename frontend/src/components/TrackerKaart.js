@@ -6,13 +6,14 @@ import { getLiveKaart, getRoute } from '../services/api';
 import './TrackerKaart.css';
 
 // ── De vijf typen — zelfde vijf opties als in de mobile app (eerste-gebruik scherm) ──
+// Volgorde = langzaamste boven, snelste onder (geldt ook voor de dock links)
 export const ICOON_CONFIG = {
-  BOAT:   { emoji: '⛵', kleur: '#1565C0', label: 'Boten'       },
-  BIKE:   { emoji: '🚴', kleur: '#2E7D32', label: 'Fietsen'     },
-  CAR:    { emoji: '🚗', kleur: '#E65100', label: "Auto's"      },
-  PLANE:  { emoji: '✈️', kleur: '#6A1B9A', label: 'Vliegtuigen' },
   PERSON: { emoji: '🚶', kleur: '#00695C', label: 'Personen'    },
+  BIKE:   { emoji: '🚴', kleur: '#2E7D32', label: 'Fietsen'     },
+  BOAT:   { emoji: '⛵', kleur: '#1565C0', label: 'Boten'       },
+  CAR:    { emoji: '🚗', kleur: '#E65100', label: "Auto's"      },
   TRAIN:  { emoji: '🚆', kleur: '#C62828', label: 'Treinen'     },
+  PLANE:  { emoji: '✈️', kleur: '#6A1B9A', label: 'Vliegtuigen' },
 };
 
 // ── Basiskaart-tiles ──────────────────────────────────────────────────────────

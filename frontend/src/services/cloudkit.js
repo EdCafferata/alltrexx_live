@@ -1,11 +1,11 @@
 // ── Apple CloudKit koppeling ──────────────────────────────────────────────────
 // Alle accounts en trackdata staan bij Apple (CloudKit), NIET op deze site/server.
 // Configuratie via .env:
-//   REACT_APP_CLOUDKIT_CONTAINER  bijv. iCloud.com.alltrexx.live
+//   REACT_APP_CLOUDKIT_CONTAINER  bijv. iCloud.cafferata.info.alltrexx
 //   REACT_APP_CLOUDKIT_API_TOKEN  aanmaken in CloudKit Dashboard → API Access
 //   REACT_APP_CLOUDKIT_ENV        development | production
 
-const CONTAINER = process.env.REACT_APP_CLOUDKIT_CONTAINER || 'iCloud.com.alltrexx.live';
+const CONTAINER = process.env.REACT_APP_CLOUDKIT_CONTAINER || 'iCloud.cafferata.info.alltrexx';
 const API_TOKEN = process.env.REACT_APP_CLOUDKIT_API_TOKEN || '';
 const OMGEVING  = process.env.REACT_APP_CLOUDKIT_ENV || 'development';
 

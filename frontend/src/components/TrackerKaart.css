@@ -244,13 +244,14 @@
   animation-delay: calc(var(--fab-index) * -7s);
 }
 
-/* Snelheid per type — realistisch: vliegtuig snelst, voetganger traagst */
-.fab-screensaver .fab-item:nth-child(1) { --fab-duur: 60s;  } /* ⛵ Boten */
-.fab-screensaver .fab-item:nth-child(2) { --fab-duur: 90s;  } /* 🚴 Fietsen — veel trager */
-.fab-screensaver .fab-item:nth-child(3) { --fab-duur: 45s;  } /* 🚗 Auto's */
-.fab-screensaver .fab-item:nth-child(4) { --fab-duur: 28s;  } /* ✈️ Vliegtuigen — snelst */
-.fab-screensaver .fab-item:nth-child(5) { --fab-duur: 120s; } /* 🚶 Personen — traagst */
-.fab-screensaver .fab-item:nth-child(6) { --fab-duur: 35s;  } /* 🚆 Treinen — snel */
+/* Snelheid per type — realistisch: vliegtuig snelst, voetganger traagst
+   (volgorde = ICOON_CONFIG: langzaamste boven, snelste onder) */
+.fab-screensaver .fab-item:nth-child(1) { --fab-duur: 120s; } /* 🚶 Personen — traagst */
+.fab-screensaver .fab-item:nth-child(2) { --fab-duur: 90s;  } /* 🚴 Fietsen */
+.fab-screensaver .fab-item:nth-child(3) { --fab-duur: 60s;  } /* ⛵ Boten */
+.fab-screensaver .fab-item:nth-child(4) { --fab-duur: 45s;  } /* 🚗 Auto's */
+.fab-screensaver .fab-item:nth-child(5) { --fab-duur: 35s;  } /* 🚆 Treinen */
+.fab-screensaver .fab-item:nth-child(6) { --fab-duur: 28s;  } /* ✈️ Vliegtuigen — snelst */
 
 .fab-screensaver .fab {
   animation: dobber calc(var(--fab-duur, 60s) / 12) ease-in-out infinite alternate;
@@ -271,8 +272,8 @@
 .fab-screensaver .fab-item:nth-child(2) { animation-name: zweef2; }
 .fab-screensaver .fab-item:nth-child(3) { animation-name: zweef3; }
 .fab-screensaver .fab-item:nth-child(4) { animation-name: zweef4; }
-.fab-screensaver .fab-item:nth-child(5) { animation-name: zweef5; }
-.fab-screensaver .fab-item:nth-child(6) { animation-name: zweef6; }
+.fab-screensaver .fab-item:nth-child(5) { animation-name: zweef6; } /* trein: rechte baan */
+.fab-screensaver .fab-item:nth-child(6) { animation-name: zweef5; }
 
 @keyframes zweef2 {
   0%   { top: 75%; left: 85%; }
