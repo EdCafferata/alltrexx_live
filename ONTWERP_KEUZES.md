@@ -51,6 +51,10 @@ die je los over elke kaart kan leggen — ook handmatig combineerbaar
 - 🚴 Fietsroutes (Waymarked Trails cycling)
 - 🥾 Wandelroutes (Waymarked Trails hiking)
 - 🚆 Spoorwegen (OpenRailwayMap standard)
+- ✈️ Vliegvelden & luchtruim (OpenAIP, CC-BY-NC) — vergt gratis API-key
+  (`REACT_APP_OPENAIP_KEY`, aanmaken op www.openaip.net). Zonder key staat de
+  optie grijs met 🔑; mét key wordt hij ook automatisch onderdeel van de
+  Vlieg kaart-preset.
 
 De oude generieke basiskaartlijst (Topografisch/Satelliet/Licht/Donker als losse
 keuzes) is vervangen door deze presets; de tiles zelf bestaan nog in `BASIS_TILES`

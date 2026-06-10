@@ -58,6 +58,12 @@ const OVERLAYS = {
     url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
     attribution: '© OpenRailwayMap © OpenStreetMap',
   },
+  luchtvaart: {
+    label: '✈️ Vliegvelden & luchtruim (OpenAIP)',
+    url: `https://api.tiles.openaip.net/api/data/openaip/{z}/{x}/{y}.png?apiKey=${process.env.REACT_APP_OPENAIP_KEY || ''}`,
+    attribution: '© <a href="https://www.openaip.net">OpenAIP</a> (CC-BY-NC)',
+    vergtKey: !process.env.REACT_APP_OPENAIP_KEY, // gratis key via openaip.net
+  },
 };
 
 // ── Kaartpresets: Standaard + één kant-en-klare kaart per type ───────────────
@@ -66,7 +72,8 @@ const KAART_PRESETS = {
   boot:      { label: '⛵ Boot kaart',    basis: 'osm',     overlays: ['seamap'] },
   fiets:     { label: '🚴 Fiets kaart',   basis: 'cyclosm', overlays: ['fietsroutes'] },
   auto:      { label: '🚗 Auto kaart',    basis: 'osm',     overlays: [] },
-  vlieg:     { label: '✈️ Vlieg kaart',   basis: 'licht',   overlays: [] },
+  vlieg:     { label: '✈️ Vlieg kaart',   basis: 'licht',
+               overlays: process.env.REACT_APP_OPENAIP_KEY ? ['luchtvaart'] : [] },
   wandel:    { label: '🚶 Wandel kaart',  basis: 'topo',    overlays: ['wandelroutes'] },
   trein:     { label: '🚆 Trein kaart',   basis: 'licht',   overlays: ['spoorwegen'] },
 };
@@ -275,10 +282,11 @@ export default function TrackerKaart() {
           <div className="paneel-sectie">
             <div className="paneel-titel">Overlays</div>
             {Object.entries(OVERLAYS).map(([key, ov]) => (
-              <label key={key} className="paneel-rij">
-                <input type="checkbox" checked={overlaysAan[key]}
+              <label key={key} className={`paneel-rij ${ov.vergtKey ? 'paneel-rij-uit' : ''}`}
+                title={ov.vergtKey ? 'API-key nodig — gratis aan te maken op openaip.net' : undefined}>
+                <input type="checkbox" checked={overlaysAan[key]} disabled={ov.vergtKey}
                   onChange={e => setOverlaysAan(prev => ({ ...prev, [key]: e.target.checked }))} />
-                <span>{ov.label}</span>
+                <span>{ov.label}{ov.vergtKey && ' 🔑'}</span>
               </label>
             ))}
           </div>

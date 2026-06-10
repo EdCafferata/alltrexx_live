@@ -138,6 +138,11 @@
   cursor: pointer;
 }
 
+.paneel-rij-uit {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .seamap-rij {
   margin-top: 8px;
   padding-top: 8px;
