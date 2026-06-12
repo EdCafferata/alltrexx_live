@@ -4,7 +4,6 @@ Alltrexx Live — backend / live platform voor Alltrexx.
 
 ## Eigenaar
 - **Ed Cafferata** (edcafferata@icloud.com)
-- **Mede-eigenaar:** Jim Orie
 - **Ondersteund door:** The IT Crowd
 
 ## Locatie
