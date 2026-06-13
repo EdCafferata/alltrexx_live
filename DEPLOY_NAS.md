@@ -4,6 +4,28 @@ Het domein is **https://alltrexx.live** — de Web Station-vhost daarvan wijst n
 `/volume1/web/alltrexx-live/`, waar de statische frontend-build staat (UI-preview).
 De volledige app (mét live data) draait via **Container Manager**.
 
+## ✅ TODO — wat Ed nog moet doen (stand 12 juni 2026)
+
+1. **[router] Poort 8080 dichtzetten.** Niet nodig voor Let's Encrypt en niet voor
+   de frontend (die roept `/api` same-origin aan, dus via 443). De backend wordt
+   intern bereikt — port-forward 8080 mag weg. Poort **80** blijft open (Let's
+   Encrypt HTTP-01 + http→https-redirect).
+2. **[DSM] Reverse proxy aanzetten** zodat `/api` werkt en de live data laadt:
+   Web Station-vhost van alltrexx.live uit → Aanmeldingsportaal → Omgekeerde proxy:
+   HTTPS `alltrexx.live` 443 → HTTP `localhost` 3000 (zie stap 3). Daarna geeft
+   `https://alltrexx.live/api/kaart/live` JSON i.p.v. 404.
+3. **[security] OpenAIP-key roteren** op openaip.net (de oude staat publiek in de
+   JS-bundle). Nieuwe key in `frontend/.env` → opnieuw builden → uploaden (stap 4).
+4. **[security] CloudKit naar productie**: `REACT_APP_CLOUDKIT_ENV=production` +
+   een productie-token, en de security-roles in de CloudKit-dashboard nalopen.
+5. **[backend] Container herbouwen** zodat de security-fix (CORS/H2/actuator) live
+   gaat — Container Manager → project → opnieuw bouwen. Bron staat al klaar in
+   `/volume1/Backup-Ed/alltrexx-nas/`.
+6. _(optioneel)_ **DNS-01-challenge** via `acme.sh` als je ook poort 80 dicht wilt.
+
+Klaar zijn we als: `https://alltrexx.live/api/kaart/live` JSON geeft, poort 8080
+publiek dicht is, en de bundle geen geldige keys meer bevat.
+
 ## 1. Projectbestanden
 
 Het complete project staat klaar op de NAS in:
@@ -57,6 +79,19 @@ rsync -a --delete build/ /Volumes/web/alltrexx-live/
 Let op: in die statische preview werkt de kaart-UI, maar `/api`-data niet —
 daarvoor is de Container Manager-stack + reverse proxy nodig (stap 2 + 3).
 De preview is bereikbaar op https://alltrexx.live (eigen vhost).
+
+## Poorten & certificaat — wat moet open?
+
+| Poort | Publiek nodig? | Waarvoor |
+|---|---|---|
+| 80   | ja | Let's Encrypt HTTP-01-validatie + http→https-redirect |
+| 443  | ja | de site/app zelf (HTTPS) |
+| 8080 | **nee** | backend — alleen intern, port-forward mag dicht |
+| 3000 | nee | frontend-container — alleen intern (reverse proxy → localhost:3000) |
+| 3306 | nee | MySQL — alleen intern |
+
+**Let's Encrypt gebruikt nooit 8080.** Synology valideert via HTTP-01 op poort 80.
+Wil je ook 80 dicht: gebruik de DNS-01-challenge (acme.sh) i.p.v. DSM's certbeheer.
 
 ## Waar stond ook alweer wat?
 
