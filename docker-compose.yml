@@ -21,8 +21,9 @@ services:
     volumes:
       - alltrexx-db-data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "3306:3306"
+    # GEEN host-poort: de backend bereikt de DB via het interne Docker-netwerk
+    # (database:3306). Host-poort 3306 botst met DSM's MariaDB-pakket en is onnodig.
+    # Wil je toch extern debuggen, gebruik dan bv. "13306:3306".
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
