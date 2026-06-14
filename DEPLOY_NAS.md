@@ -4,8 +4,33 @@ Het domein is **https://alltrexx.live** — de Web Station-vhost daarvan wijst n
 `/volume1/web/alltrexx-live/`, waar de statische frontend-build staat (UI-preview).
 De volledige app (mét live data) draait via **Container Manager**.
 
-## ✅ TODO — wat Ed nog moet doen (stand 12 juni 2026)
+## ⚠️ Build op de NAS heeft GEEN DNS (Synology-eigenaardigheid)
 
+Container Manager kan tijdens build-`RUN`-stappen geen hostnamen opzoeken → `mvn` en
+`npm` falen met **"Unknown host"**. Daarom bouwen de Dockerfiles **niet** meer in de
+container; ze pakken **vooraf lokaal gebouwde artefacten** in:
+
+```bash
+# op een machine MET internet (bv. de Mac), in /Volumes/Backup-Ed/AI/alltrexx_live:
+cd backend  && mvn clean package -DskipTests        # -> target/alltrexx-live-1.0.0.jar
+cd ../frontend && npm ci && npm run build            # -> build/
+# daarna jar + build naar de NAS-projectmap:
+rsync -a backend/target/alltrexx-live-1.0.0.jar  /Volumes/Backup-Ed/alltrexx-nas/backend/target/
+rsync -a frontend/build/  /Volumes/Backup-Ed/alltrexx-nas/frontend/build/
+```
+
+De multi-stage builds (met maven/node) staan bewaard als `Dockerfile.build` — gebruik
+die alleen op een host mét build-DNS. (Alternatief, "echte" fix: Docker-daemon-DNS op
+de NAS instellen, maar dat vergt daemon-config; de prebuilt-aanpak werkt direct.)
+
+## ✅ TODO — wat Ed nog moet doen (stand 15 juni 2026)
+
+0. **[Container Manager] Gebruik het juiste project.** Er stond nog een oud project
+   met services `mysql`/`maven` (containers `mysql-1`,`maven-1`) — verwijderen (incl.
+   volume). Maak het project opnieuw vanaf pad `/Backup-Ed/alltrexx-nas` (services
+   `database`/`backend`/`frontend`). MySQL-volume `alltrexx-db-data` verwijderen zodat
+   het nieuwe sterke DB-wachtwoord pakt. Poorten: db `3306:3306`, backend `8080:8080`,
+   frontend `3000:80` (NIET 80/443 — die zijn van DSM/Web Station).
 1. **[router] Poort 8080 dichtzetten.** Niet nodig voor Let's Encrypt en niet voor
    de frontend (die roept `/api` same-origin aan, dus via 443). De backend wordt
    intern bereikt — port-forward 8080 mag weg. Poort **80** blijft open (Let's
