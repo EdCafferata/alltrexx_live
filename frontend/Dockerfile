@@ -1,16 +1,11 @@
-# ── Stap 1: Build React app ───────────────────────────────────────────────────
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --silent
-COPY src ./src
-COPY public ./public
-# Backend URL voor productie — pas aan naar jouw NAS IP of domein
-ENV REACT_APP_API_URL=http://localhost:8080
-RUN npm run build
+# Frontend image — pakt een VOORAF gebouwde React-build in (geen npm in de build).
+# Reden: Synology Container Manager heeft geen DNS tijdens build-RUN-stappen, dus
+# `npm ci` faalt met "Unknown host". Bouw daarom eerst lokaal op een machine met internet:
+#     cd frontend && npm ci && npm run build        (levert build/)
+# en laat Docker die alleen in nginx kopiëren — geen netwerk nodig tijdens image-build.
+# De originele multi-stage build (met node) staat in Dockerfile.build.
 
-# ── Stap 2: Serveer via nginx ─────────────────────────────────────────────────
 FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+COPY build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
