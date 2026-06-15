@@ -47,18 +47,6 @@ export default function AccountMenu() {
         ⚓ Alltrexx {gebruiker && <span className="logo-ingelogd">●</span>}
       </button>
 
-      {/* ── Beheerdersbalk ───────────────────────────────────────────── */}
-      {gebruiker?.isBeheerder && (
-        <div className="beheer-balk">
-          <span className="beheer-titel">🛠️ Beheer</span>
-          <button>🔍 Data zoeken</button>
-          <button>✏️ Gegevens aanpassen</button>
-          <button>📊 Rapportages</button>
-          <button>👥 Gebruikers</button>
-          <button>⚙️ Instellingen</button>
-        </div>
-      )}
-
       {open && (
         <div className="account-paneel">
           {gebruiker ? (
@@ -70,6 +58,19 @@ export default function AccountMenu() {
                 Je gegevens en tracks staan veilig in jouw eigen Apple iCloud (CloudKit).
                 Deze site slaat zelf géén persoonsgegevens op.
               </div>
+
+              {/* ── Beheer (alleen beheerder), onder het inlog-gedeelte ──────── */}
+              {gebruiker.isBeheerder && (
+                <div className="beheer-sectie">
+                  <div className="beheer-titel">🛠️ Beheer</div>
+                  <button className="account-knop">🚢 Boten &amp; AIS beheren</button>
+                  <button className="account-knop">🔍 Data zoeken</button>
+                  <button className="account-knop">📊 Rapportages</button>
+                  <button className="account-knop">👥 Gebruikers</button>
+                  <button className="account-knop">⚙️ Instellingen</button>
+                </div>
+              )}
+
               <button className="account-knop account-uitlog" onClick={uitloggen}>
                 Uitloggen
               </button>
