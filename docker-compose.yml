@@ -1,14 +1,16 @@
 # ── Alltrexx Live — Docker Compose (Synology Container Manager) ──────────────
-# Geen build-stap: standaard-images + vooraf gebouwde bestanden eraan gekoppeld.
-# Alle drie de containers in ÉÉN expliciet netwerk (alltrexx-net) zodat ze elkaar
-# gegarandeerd via servicenaam kunnen bereiken (frontend -> backend -> database).
+# KOGELVRIJE opzet: ÉÉN app-container die zowel de website als de API serveert.
+# Geen aparte frontend-container, geen inter-container-proxy — dat hele netwerk-
+# probleem verdwijnt. De DSM reverse proxy wijst naar localhost:8080.
+#
+# Spring Boot serveert de React-build (gekoppeld op /static) op "/" en de API op /api.
 #
 # Vooraf nodig in deze projectmap:
 #   backend/target/alltrexx-live-1.0.0.jar   (mvn clean package -DskipTests)
-#   frontend/build/  + frontend/nginx.conf  + database/init.sql
+#   frontend/build/  + database/init.sql
 #   .env met DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET, MARINETRAFFIC_API_KEY
 #
-# Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
+# LET OP: zet de DSM reverse proxy voor alltrexx.live op doel localhost:8080 (was 3000).
 
 name: alltrexx-live
 
@@ -38,10 +40,10 @@ services:
       timeout: 5s
       retries: 10
 
-  # ── Spring Boot backend: standaard Java-image + de jar eraan gekoppeld ───────
-  backend:
+  # ── App: Spring Boot serveert ZOWEL de website als de API ───────────────────
+  app:
     image: eclipse-temurin:21-jre
-    container_name: alltrexx-backend
+    container_name: alltrexx-app
     restart: unless-stopped
     networks: [alltrexx-net]
     depends_on:
@@ -55,25 +57,14 @@ services:
       JWT_SECRET:            ${JWT_SECRET}
       MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+      # Spring serveert de React-build die hieronder op /static is gekoppeld:
+      SPRING_WEB_RESOURCES_STATIC_LOCATIONS: file:/static/
     volumes:
-      - ./backend/target:/app:ro
+      - ./backend/target:/app:ro          # de jar
+      - ./frontend/build:/static:ro       # de website
     command: ["java", "-jar", "/app/alltrexx-live-1.0.0.jar"]
     ports:
-      - "8080:8080"      # optioneel/debug
-
-  # ── React frontend via nginx (reverse proxy wijst hierheen: localhost:3000) ──
-  frontend:
-    image: nginx:alpine
-    container_name: alltrexx-frontend
-    restart: unless-stopped
-    networks: [alltrexx-net]
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend/build:/usr/share/nginx/html:ro
-      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      - "3000:80"
+      - "8080:8080"                       # DSM reverse proxy wijst hierheen
 
 volumes:
   alltrexx-db-fresh:

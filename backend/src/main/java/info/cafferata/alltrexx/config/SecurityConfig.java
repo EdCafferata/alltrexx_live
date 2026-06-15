@@ -29,12 +29,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // ── Publiek toegankelijk ──────────────────────────────────
+                // ── Publieke API ──────────────────────────────────────────
                 .requestMatchers("/api/kaart/**").permitAll()   // live kaart
                 .requestMatchers("/api/auth/**").permitAll()    // login/register
                 .requestMatchers("/actuator/health").permitAll()
-                // ── Alles overige vereist authenticatie ───────────────────
-                .anyRequest().authenticated()
+                // ── Overige API vereist authenticatie ─────────────────────
+                .requestMatchers("/api/**").authenticated()
+                // ── Alle overige verzoeken = de statische website (publiek) ─
+                .anyRequest().permitAll()
             );
 
         return http.build();
