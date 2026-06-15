@@ -39,6 +39,27 @@ public class TrackerService {
         return trackerRepo.save(tracker);
     }
 
+    /**
+     * Werk de scheepsgegevens van een tracker bij (op externeId/MMSI).
+     * Lege waarden worden genegeerd zodat bestaande gegevens niet worden gewist.
+     * Bootnaam komt doorgaans van MarineTraffic (SHIPNAME), schipper handmatig/via app.
+     */
+    @Transactional
+    public void werkScheepsgegevensBij(String externeId, String bootnaam, String schipper) {
+        trackerRepo.findByExterneId(externeId).ifPresent(t -> {
+            boolean gewijzigd = false;
+            if (bootnaam != null && !bootnaam.isBlank() && !bootnaam.equals(t.getBootnaam())) {
+                t.setBootnaam(bootnaam);
+                gewijzigd = true;
+            }
+            if (schipper != null && !schipper.isBlank() && !schipper.equals(t.getSchipper())) {
+                t.setSchipper(schipper);
+                gewijzigd = true;
+            }
+            if (gewijzigd) trackerRepo.save(t);
+        });
+    }
+
     // ── Posities ──────────────────────────────────────────────────────────────
 
     /**

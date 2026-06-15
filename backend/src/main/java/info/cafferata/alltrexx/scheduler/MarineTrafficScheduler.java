@@ -85,6 +85,7 @@ public class MarineTrafficScheduler {
         double lon      = schip.path("LON").asDouble();
         double snelheid = schip.path("SPEED").asDouble() * 1.852; // knopen → km/h
         double koers    = schip.path("COURSE").asDouble();
+        String bootnaam = schip.path("SHIPNAME").asText(null);   // naam van de boot bij MarineTraffic
 
         trackerService.slaPositieOp(
             mmsi, TrackerType.BOAT, naam,
@@ -92,6 +93,9 @@ public class MarineTrafficScheduler {
             "MARINETRAFFIC"
         );
 
-        log.debug("AIS positie opgeslagen: {} @ {},{}", naam, lat, lon);
+        // Bootnaam (SHIPNAME) bijwerken; schipper komt niet van MarineTraffic (null laten).
+        trackerService.werkScheepsgegevensBij(mmsi, bootnaam, null);
+
+        log.debug("AIS positie opgeslagen: {} ({}) @ {},{}", naam, bootnaam, lat, lon);
     }
 }

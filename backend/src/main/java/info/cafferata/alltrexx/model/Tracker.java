@@ -27,8 +27,14 @@ public class Tracker {
     @Enumerated(EnumType.STRING)
     private TrackerType type;
 
-    /** Externe ID — MMSI nummer voor boten, vluchtnummer voor vliegtuigen, etc. */
+    /** Externe ID — MMSI/AIS-nummer voor boten, vluchtnummer voor vliegtuigen, etc. */
     private String externeId;
+
+    /** Bootnaam — afkomstig van MarineTraffic (SHIPNAME); kan afwijken van 'naam'. */
+    private String bootnaam;
+
+    /** Schipper — handmatig of via de RNH/mobile-app ingevoerd (niet van MarineTraffic). */
+    private String schipper;
 
     /** Omschrijving / extra info */
     private String omschrijving;
