@@ -40,6 +40,36 @@ public class TrackerService {
     }
 
     /**
+     * Voeg een tracker toe of werk hem bij op basis van externeId (AIS/MMSI).
+     * Bestaat er al een tracker met dat externeId, dan worden de meegegeven velden
+     * bijgewerkt; anders wordt een nieuwe aangemaakt.
+     */
+    @Transactional
+    public Tracker opslaanOfBijwerken(Tracker invoer) {
+        Tracker doel = (invoer.getExterneId() != null
+                ? trackerRepo.findByExterneId(invoer.getExterneId()).orElse(null)
+                : null);
+        if (doel == null) doel = invoer.getId() != null
+                ? trackerRepo.findById(invoer.getId()).orElse(new Tracker())
+                : new Tracker();
+
+        if (invoer.getNaam() != null)        doel.setNaam(invoer.getNaam());
+        if (invoer.getType() != null)        doel.setType(invoer.getType());
+        if (invoer.getExterneId() != null)   doel.setExterneId(invoer.getExterneId());
+        if (invoer.getBootnaam() != null)    doel.setBootnaam(invoer.getBootnaam());
+        if (invoer.getSchipper() != null)    doel.setSchipper(invoer.getSchipper());
+        if (invoer.getOmschrijving() != null) doel.setOmschrijving(invoer.getOmschrijving());
+        if (doel.getNaam() == null) doel.setNaam(invoer.getExterneId()); // fallback
+        doel.setActief(true);
+        return trackerRepo.save(doel);
+    }
+
+    @Transactional
+    public void verwijderTracker(Long id) {
+        trackerRepo.deleteById(id);
+    }
+
+    /**
      * Werk de scheepsgegevens van een tracker bij (op externeId/MMSI).
      * Lege waarden worden genegeerd zodat bestaande gegevens niet worden gewist.
      * Bootnaam komt doorgaans van MarineTraffic (SHIPNAME), schipper handmatig/via app.

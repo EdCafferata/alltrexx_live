@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { startLogin, logUit, huidigeGebruiker } from '../services/cloudkit';
+import BeheerBoten from './BeheerBoten';
 import './AccountMenu.css';
 
 // ── Logo-knop linksboven: account, login/registratie (CloudKit) en beheer ────
@@ -9,6 +10,7 @@ export default function AccountMenu() {
   const [fout, setFout] = useState(null);
   const [bezig, setBezig] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [botenOpen, setBotenOpen] = useState(false);
 
   // AVG-toestemmingen
   const [akkoordNoodzakelijk, setAkkoordNoodzakelijk] = useState(false);
@@ -63,7 +65,7 @@ export default function AccountMenu() {
               {gebruiker.isBeheerder && (
                 <div className="beheer-sectie">
                   <div className="beheer-titel">🛠️ Beheer</div>
-                  <button className="account-knop">🚢 Boten &amp; AIS beheren</button>
+                  <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🚢 Boten &amp; AIS beheren</button>
                   <button className="account-knop">🔍 Data zoeken</button>
                   <button className="account-knop">📊 Rapportages</button>
                   <button className="account-knop">👥 Gebruikers</button>
@@ -138,6 +140,8 @@ export default function AccountMenu() {
           )}
         </div>
       )}
+
+      {botenOpen && <BeheerBoten onSluiten={() => setBotenOpen(false)} />}
     </>
   );
 }

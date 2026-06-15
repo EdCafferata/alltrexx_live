@@ -18,3 +18,18 @@ export const stuurPositie = (data, token) =>
   api.post('/trackers/positie', data, {
     headers: { Authorization: `Bearer ${token}` }
   });
+
+// ── Beheer (admin-key in header X-Admin-Key) ────────────────────────────────
+const adminHeaders = (key) => ({ headers: { 'X-Admin-Key': key } });
+
+/** Alle trackers ophalen (beheer) */
+export const adminGetTrackers = (key) =>
+  api.get('/admin/trackers', adminHeaders(key)).then(r => r.data);
+
+/** Boot toevoegen/bijwerken (upsert op AIS-nummer) */
+export const adminSaveTracker = (key, tracker) =>
+  api.post('/admin/trackers', tracker, adminHeaders(key)).then(r => r.data);
+
+/** Tracker verwijderen */
+export const adminDeleteTracker = (key, id) =>
+  api.delete(`/admin/trackers/${id}`, adminHeaders(key));

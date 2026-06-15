@@ -56,6 +56,7 @@ services:
       DB_PASSWORD:           ${DB_PASSWORD}
       JWT_SECRET:            ${JWT_SECRET}
       MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
+      ADMIN_API_KEY:         ${ADMIN_API_KEY}
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
       # Spring serveert de React-build die hieronder op /static is gekoppeld:
       SPRING_WEB_RESOURCES_STATIC_LOCATIONS: file:/static/
