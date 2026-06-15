@@ -13,6 +13,9 @@ export const getLivePerType = (type) =>
 export const getRoute = (trackerId, uur = 24) =>
   api.get(`/kaart/route/${trackerId}`, { params: { uur } }).then(r => r.data);
 
+/** Laatste update per databron (AISHUB, KPLER, ...) */
+export const getBronnen = () => api.get('/kaart/bronnen').then(r => r.data);
+
 /** Stuur positie vanuit app */
 export const stuurPositie = (data, token) =>
   api.post('/trackers/positie', data, {

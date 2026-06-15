@@ -30,6 +30,15 @@ public class KaartController {
     }
 
     /**
+     * Laatste update per databron (AISHUB, KPLER, ...) — voor de bron-ticker.
+     * GET /api/kaart/bronnen
+     */
+    @GetMapping("/bronnen")
+    public ResponseEntity<List<info.cafferata.alltrexx.repository.PositieRepository.BronStatus>> bronnen() {
+        return ResponseEntity.ok(trackerService.bronnenStatus());
+    }
+
+    /**
      * Actuele posities gefilterd op type.
      * GET /api/kaart/live?type=BOAT
      */

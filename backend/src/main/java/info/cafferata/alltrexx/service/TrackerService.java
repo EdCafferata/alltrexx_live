@@ -141,6 +141,11 @@ public class TrackerService {
             .toList();
     }
 
+    /** Laatste update + aantal per databron (voor de bron-ticker) */
+    public List<info.cafferata.alltrexx.repository.PositieRepository.BronStatus> bronnenStatus() {
+        return positieRepo.findLaatsteUpdatePerBron();
+    }
+
     /** Route van een tracker over de afgelopen X uur */
     public List<PositieDto> route(Long trackerId, int uur) {
         return trackerRepo.findById(trackerId)

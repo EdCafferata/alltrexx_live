@@ -53,4 +53,20 @@ public interface PositieRepository extends JpaRepository<Positie, Long> {
     """)
     List<Positie> findRoute(@Param("trackerId") Long trackerId,
                             @Param("vanaf") LocalDateTime vanaf);
+
+    /** Laatste update + aantal posities per bron (AISHUB, KPLER, APP, ...) */
+    @Query("""
+        SELECT p.bron AS bron, MAX(p.tijdstip) AS laatste, COUNT(p) AS aantal
+        FROM Positie p
+        WHERE p.bron IS NOT NULL
+        GROUP BY p.bron
+    """)
+    List<BronStatus> findLaatsteUpdatePerBron();
+
+    /** Projectie voor de bron-status (laatste update per databron) */
+    interface BronStatus {
+        String getBron();
+        LocalDateTime getLaatste();
+        long getAantal();
+    }
 }
