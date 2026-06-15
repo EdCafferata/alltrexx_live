@@ -5,6 +5,7 @@ import info.cafferata.alltrexx.service.TrackerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,11 +15,13 @@ import java.util.List;
 
 /**
  * Haalt live AIS-data op bij MarineTraffic voor geregistreerde boten.
- * Interval instelbaar via app.scheduler.ais-interval-ms (standaard elk uur).
+ * UITGESCHAKELD tenzij app.marinetraffic.enabled=true — we gebruiken AISHub
+ * (AisHubScheduler), want het gratis account heeft geen MarineTraffic-export.
  *
  * MarineTraffic API docs: https://www.marinetraffic.com/en/ais-api-services
  */
 @Component
+@ConditionalOnProperty(name = "app.marinetraffic.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class MarineTrafficScheduler {
