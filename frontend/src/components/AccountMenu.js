@@ -61,8 +61,10 @@ export default function AccountMenu() {
                 Deze site slaat zelf géén persoonsgegevens op.
               </div>
 
-              {/* ── Beheer (alleen beheerder), onder het inlog-gedeelte ──────── */}
-              {gebruiker.isBeheerder && (
+              {/* Beheer-sectie onder het inlog-gedeelte. CloudKit geeft het e-mailadres
+                  meestal niet vrij, dus we tonen 'm voor elke ingelogde gebruiker; de
+                  echte toegang wordt afgeschermd door de admin-key op de backend. */}
+              {gebruiker && (
                 <div className="beheer-sectie">
                   <div className="beheer-titel">🛠️ Beheer</div>
                   <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🚢 Boten &amp; AIS beheren</button>
