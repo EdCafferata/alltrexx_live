@@ -8,3 +8,7 @@ frontend/node_modules/
 
 # OS
 .DS_Store
+
+# env-backups met secrets nooit committen
+env-*
+.env.bak*
