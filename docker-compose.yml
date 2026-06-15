@@ -1,40 +1,40 @@
-version: '3.9'
-
-# ── Alltrexx Live — Docker Compose ──────────────────────────────────────────
-# Start met: docker-compose up -d
-# Stop met:  docker-compose down
+# ── Alltrexx Live — Docker Compose (Synology Container Manager) ──────────────
+# Schone productie-opzet. Waarden komen uit het .env-bestand in deze map.
+# Importeer in Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
 #
-# Op Synology NAS: gebruik Container Manager → Project → Importeer dit bestand
+# Vereist een .env met: DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET,
+# MARINETRAFFIC_API_KEY. (Geen defaults hier: ontbreekt er één, dan stopt de build
+# meteen i.p.v. stilletjes een zwak wachtwoord te gebruiken.)
+
+name: alltrexx-live
 
 services:
 
-  # ── MySQL database ──────────────────────────────────────────────────────────
+  # ── MySQL database (alleen intern bereikbaar) ───────────────────────────────
   database:
     image: mysql:8.0
     container_name: alltrexx-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_change_me}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE:      alltrexx
-      MYSQL_USER:          ${DB_USERNAME:-alltrexx}
-      MYSQL_PASSWORD:      ${DB_PASSWORD:-alltrexx_change_me}
+      MYSQL_USER:          ${DB_USERNAME}
+      MYSQL_PASSWORD:      ${DB_PASSWORD}
     volumes:
       - alltrexx-db-data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    # GEEN host-poort: de backend bereikt de DB via het interne Docker-netwerk
-    # (database:3306). Host-poort 3306 botst met DSM's MariaDB-pakket en is onnodig.
-    # Wil je toch extern debuggen, gebruik dan bv. "13306:3306".
+    # Geen host-poort: backend praat via het Docker-netwerk (database:3306).
+    # Host-3306 botst met DSM's MariaDB. Extern debuggen? gebruik "13306:3306".
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   # ── Spring Boot backend ─────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     container_name: alltrexx-backend
     restart: unless-stopped
     depends_on:
@@ -42,27 +42,26 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_USERNAME:            ${DB_USERNAME:-alltrexx}
-      DB_PASSWORD:            ${DB_PASSWORD:-alltrexx_change_me}
-      JWT_SECRET:             ${JWT_SECRET:-ChangeThisSecretInProduction!}
-      MARINETRAFFIC_API_KEY:  ${MARINETRAFFIC_API_KEY:-DEMO_KEY}
-      SPRING_DATASOURCE_URL:  jdbc:mysql://database:3306/alltrexx?useSSL=false&serverTimezone=Europe/Amsterdam
+      DB_USERNAME:           ${DB_USERNAME}
+      DB_PASSWORD:           ${DB_PASSWORD}
+      JWT_SECRET:            ${JWT_SECRET}
+      MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
     ports:
-      - "8080:8080"
+      - "8080:8080"      # optioneel/debug; mag later weg (frontend praat intern)
     volumes:
       - alltrexx-logs:/app/logs
 
-  # ── React frontend (gebouwde static files via nginx) ────────────────────────
+  # ── React frontend via nginx (de reverse proxy wijst hierheen: localhost:3000) ─
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
     container_name: alltrexx-frontend
     restart: unless-stopped
-    ports:
-      - "3000:80"
     depends_on:
       - backend
+    ports:
+      - "3000:80"        # host 3000 -> nginx 80
 
 volumes:
   alltrexx-db-data:
