@@ -1,16 +1,21 @@
 # ── Alltrexx Live — Docker Compose (Synology Container Manager) ──────────────
-# Schone productie-opzet. Waarden komen uit het .env-bestand in deze map.
-# Importeer in Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
+# GEEN build-stap: we draaien standaard-images en koppelen de vooraf gebouwde
+# bestanden eraan. Dit omzeilt alle Synology-buildproblemen (geen DNS tijdens build,
+# jar-rechten, image-cache). Container Manager hoeft alleen de images te PULLEN.
 #
-# Vereist een .env met: DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET,
-# MARINETRAFFIC_API_KEY. (Geen defaults hier: ontbreekt er één, dan stopt de build
-# meteen i.p.v. stilletjes een zwak wachtwoord te gebruiken.)
+# Vooraf nodig op de NAS in deze projectmap:
+#   backend/target/alltrexx-live-1.0.0.jar   (mvn clean package -DskipTests op de Mac)
+#   frontend/build/                          (npm run build op de Mac)
+#   frontend/nginx.conf, database/init.sql   (staan er al)
+# En een .env met DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET, MARINETRAFFIC_API_KEY.
+#
+# Importeer in Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
 
 name: alltrexx-live
 
 services:
 
-  # ── MySQL database (alleen intern bereikbaar) ───────────────────────────────
+  # ── MySQL database (alleen intern) ──────────────────────────────────────────
   database:
     image: mysql:8.0
     container_name: alltrexx-db
@@ -23,23 +28,21 @@ services:
     volumes:
       - alltrexx-db-data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    # Geen host-poort: backend praat via het Docker-netwerk (database:3306).
-    # Host-3306 botst met DSM's MariaDB. Extern debuggen? gebruik "13306:3306".
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ── Spring Boot backend ─────────────────────────────────────────────────────
+  # ── Spring Boot backend: standaard Java-image + de jar eraan gekoppeld ───────
   backend:
-    build:
-      context: ./backend
+    image: eclipse-temurin:21-jre
     container_name: alltrexx-backend
     restart: unless-stopped
     depends_on:
       database:
         condition: service_healthy
+    working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_USERNAME:           ${DB_USERNAME}
@@ -47,22 +50,24 @@ services:
       JWT_SECRET:            ${JWT_SECRET}
       MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
-    ports:
-      - "8080:8080"      # optioneel/debug; mag later weg (frontend praat intern)
     volumes:
-      - alltrexx-logs:/app/logs
+      - ./backend/target:/app:ro          # bevat alltrexx-live-1.0.0.jar
+    command: ["java", "-jar", "/app/alltrexx-live-1.0.0.jar"]
+    ports:
+      - "8080:8080"
 
-  # ── React frontend via nginx (de reverse proxy wijst hierheen: localhost:3000) ─
+  # ── React frontend: standaard nginx + de build eraan gekoppeld ──────────────
   frontend:
-    build:
-      context: ./frontend
+    image: nginx:alpine
     container_name: alltrexx-frontend
     restart: unless-stopped
     depends_on:
       - backend
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "3000:80"        # host 3000 -> nginx 80
+      - "3000:80"
 
 volumes:
   alltrexx-db-data:
-  alltrexx-logs:
