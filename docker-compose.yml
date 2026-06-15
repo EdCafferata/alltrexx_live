@@ -1,17 +1,20 @@
 # ── Alltrexx Live — Docker Compose (Synology Container Manager) ──────────────
-# GEEN build-stap: we draaien standaard-images en koppelen de vooraf gebouwde
-# bestanden eraan. Dit omzeilt alle Synology-buildproblemen (geen DNS tijdens build,
-# jar-rechten, image-cache). Container Manager hoeft alleen de images te PULLEN.
+# Geen build-stap: standaard-images + vooraf gebouwde bestanden eraan gekoppeld.
+# Alle drie de containers in ÉÉN expliciet netwerk (alltrexx-net) zodat ze elkaar
+# gegarandeerd via servicenaam kunnen bereiken (frontend -> backend -> database).
 #
-# Vooraf nodig op de NAS in deze projectmap:
-#   backend/target/alltrexx-live-1.0.0.jar   (mvn clean package -DskipTests op de Mac)
-#   frontend/build/                          (npm run build op de Mac)
-#   frontend/nginx.conf, database/init.sql   (staan er al)
-# En een .env met DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET, MARINETRAFFIC_API_KEY.
+# Vooraf nodig in deze projectmap:
+#   backend/target/alltrexx-live-1.0.0.jar   (mvn clean package -DskipTests)
+#   frontend/build/  + frontend/nginx.conf  + database/init.sql
+#   .env met DB_ROOT_PASSWORD, DB_USERNAME, DB_PASSWORD, JWT_SECRET, MARINETRAFFIC_API_KEY
 #
-# Importeer in Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
+# Container Manager → Project → pad: /Backup-Ed/alltrexx-nas
 
 name: alltrexx-live
+
+networks:
+  alltrexx-net:
+    driver: bridge
 
 services:
 
@@ -20,6 +23,7 @@ services:
     image: mysql:8.0
     container_name: alltrexx-db
     restart: unless-stopped
+    networks: [alltrexx-net]
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE:      alltrexx
@@ -39,6 +43,7 @@ services:
     image: eclipse-temurin:21-jre
     container_name: alltrexx-backend
     restart: unless-stopped
+    networks: [alltrexx-net]
     depends_on:
       database:
         condition: service_healthy
@@ -51,16 +56,17 @@ services:
       MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
     volumes:
-      - ./backend/target:/app:ro          # bevat alltrexx-live-1.0.0.jar
+      - ./backend/target:/app:ro
     command: ["java", "-jar", "/app/alltrexx-live-1.0.0.jar"]
     ports:
-      - "8080:8080"
+      - "8080:8080"      # optioneel/debug
 
-  # ── React frontend: standaard nginx + de build eraan gekoppeld ──────────────
+  # ── React frontend via nginx (reverse proxy wijst hierheen: localhost:3000) ──
   frontend:
     image: nginx:alpine
     container_name: alltrexx-frontend
     restart: unless-stopped
+    networks: [alltrexx-net]
     depends_on:
       - backend
     volumes:
