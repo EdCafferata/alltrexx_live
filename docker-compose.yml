@@ -32,7 +32,11 @@ services:
       MYSQL_USER:          ${DB_USERNAME}
       MYSQL_PASSWORD:      ${DB_PASSWORD}
     volumes:
-      - alltrexx-db-fresh:/var/lib/mysql
+      # Host bind-mount i.p.v. named volume: de DB-data leeft op de NAS-filesystem
+      # (./db-data = naast deze compose) en OVERLEEFT een volledige project-recreate.
+      # Named volumes werden bij project-delete door Container Manager weggegooid → 74
+      # boten kwijt. Backup + herstel: data/boten-backup.json + data/restore-boten.sh.
+      - ./db-data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -49,9 +53,23 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    # Eigen DNS: de Synology-host-resolver kan externe namen (data.aishub.net) niet
+    # doorgeven aan de container, waardoor de AIS-poller "DNS niet ophalen" gaf.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    # Vangnet: AISHub-host hard in /etc/hosts zodat de poller NOOIT DNS nodig heeft.
+    # IP geverifieerd 16 juni 2026 (data.aishub.net A-record). Bijwerken als 't ooit wijzigt.
+    extra_hosts:
+      - "data.aishub.net:144.76.105.244"
     working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # JVM-tijdzone op NL → LocalDateTime.now() in posities = CEST i.p.v. UTC (was 2 uur terug).
+      TZ: Europe/Amsterdam
+      # AISHub-respons is ~2,6 MB (9000+ schepen); default WebClient-buffer = 256 KB →
+      # decode faalde ("ophalen mislukt: 200 OK"). Buffer ophogen zodat de poll slaagt.
+      SPRING_CODEC_MAX_IN_MEMORY_SIZE: 16MB
       DB_USERNAME:           ${DB_USERNAME}
       DB_PASSWORD:           ${DB_PASSWORD}
       JWT_SECRET:            ${JWT_SECRET}
@@ -68,6 +86,3 @@ services:
     command: ["java", "-jar", "/app/alltrexx-live-1.0.0.jar"]
     ports:
       - "8080:8080"                       # DSM reverse proxy wijst hierheen
-
-volumes:
-  alltrexx-db-fresh:
