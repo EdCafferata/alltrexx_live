@@ -4,6 +4,16 @@ import './BeheerBoten.css';
 
 const KEY_OPSLAG = 'alltrexx-admin-key';
 
+// Alle tracker-types die je kunt beheren (moet overeenkomen met TrackerType in de backend)
+const TYPES = [
+  { type: 'BOAT',   label: '⛵ Boot',       idLabel: 'AIS-nummer (MMSI)' },
+  { type: 'PERSON', label: '🚶 Voetganger', idLabel: 'ID / device-id' },
+  { type: 'BIKE',   label: '🚴 Fietser',    idLabel: 'ID / device-id' },
+  { type: 'CAR',    label: '🚗 Auto',       idLabel: 'ID / kenteken' },
+  { type: 'TRAIN',  label: '🚆 Trein',      idLabel: 'ID / treinnummer' },
+  { type: 'PLANE',  label: '✈️ Vliegtuig',  idLabel: 'ID / vluchtnummer' },
+];
+
 // ── Beheerscherm: boten/AIS toevoegen, bekijken, verwijderen ────────────────
 // De admin-key wordt lokaal in de browser bewaard (niet in de publieke bundle).
 export default function BeheerBoten({ onSluiten }) {
@@ -13,10 +23,12 @@ export default function BeheerBoten({ onSluiten }) {
   const [fout, setFout] = useState(null);
   const [bezig, setBezig] = useState(false);
 
-  // nieuw-boot formulier
+  // nieuwe-tracker formulier
+  const [type, setType] = useState('BOAT');
   const [ais, setAis] = useState('');
   const [schipper, setSchipper] = useState('');
   const [bootnaam, setBootnaam] = useState('');
+  const typeCfg = TYPES.find(t => t.type === type) || TYPES[0];
 
   // zoeken in de lijst (bootnaam, naam, MMSI, schipper, type)
   const [zoek, setZoek] = useState('');
@@ -40,12 +52,12 @@ export default function BeheerBoten({ onSluiten }) {
 
   const toevoegen = async (e) => {
     e.preventDefault();
-    if (!ais.trim()) { setFout('AIS-nummer is verplicht.'); return; }
+    if (!ais.trim()) { setFout(`${typeCfg.idLabel} is verplicht.`); return; }
     setFout(null); setBezig(true);
     try {
       await adminSaveTracker(adminKey, {
         externeId: ais.trim(),
-        type: 'BOAT',
+        type,
         naam: bootnaam.trim() || ais.trim(),
         bootnaam: bootnaam.trim() || null,
         schipper: schipper.trim() || null,
@@ -86,7 +98,7 @@ export default function BeheerBoten({ onSluiten }) {
     <div className="beheer-overlay" onClick={onSluiten}>
       <div className="beheer-modal" onClick={e => e.stopPropagation()}>
         <div className="beheer-modal-kop">
-          <span>🚢 Boten &amp; AIS beheren</span>
+          <span>🛰️ Trackers beheren</span>
           <button className="beheer-sluit" onClick={onSluiten}>✕</button>
         </div>
 
@@ -107,13 +119,19 @@ export default function BeheerBoten({ onSluiten }) {
 
         {keyOk && (
           <>
-            {/* Nieuwe boot */}
+            {/* Nieuwe tracker */}
             <form className="beheer-form" onSubmit={toevoegen}>
-              <input placeholder="AIS-nummer (MMSI) *" value={ais}
+              <select className="beheer-type" value={type}
+                      onChange={e => setType(e.target.value)}>
+                {TYPES.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
+              </select>
+              <input placeholder={`${typeCfg.idLabel} *`} value={ais}
                      onChange={e => setAis(e.target.value)} />
-              <input placeholder="Schipper" value={schipper}
+              <input placeholder={type === 'BOAT' ? 'Schipper' : 'Bestuurder / eigenaar'} value={schipper}
                      onChange={e => setSchipper(e.target.value)} />
-              <input placeholder="Bootnaam (optioneel — komt anders van AIS)" value={bootnaam}
+              <input placeholder={type === 'BOAT'
+                       ? 'Bootnaam (optioneel — komt anders van AIS)'
+                       : 'Naam / label (optioneel)'} value={bootnaam}
                      onChange={e => setBootnaam(e.target.value)} />
               <button type="submit" disabled={bezig}>+ Toevoegen</button>
             </form>
@@ -122,7 +140,7 @@ export default function BeheerBoten({ onSluiten }) {
             <div className="beheer-zoekrij">
               <input
                 type="search"
-                placeholder="🔎 Zoek op boot, MMSI of schipper…"
+                placeholder="🔎 Zoek op naam, ID/MMSI, bestuurder of type…"
                 value={zoek}
                 onChange={e => setZoek(e.target.value)}
               />

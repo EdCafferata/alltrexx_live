@@ -8,5 +8,6 @@ public enum TrackerType {
     BIKE,       // Fietsen
     CAR,        // Auto's
     PLANE,      // Vliegtuigen
-    PERSON      // Wandelaars / lopers
+    PERSON,     // Wandelaars / lopers
+    TRAIN       // Treinen (frontend toonde dit type al)
 }
