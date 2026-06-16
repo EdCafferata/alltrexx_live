@@ -89,14 +89,13 @@ function maakIcoon(type, koers = 0) {
 
 const REFRESH_INTERVAL = 30_000; // 30 seconden
 
-// Periodes voor het tonen van routes (de ronde om Noord-Holland duurt > 24u)
-const ROUTE_PERIODES = [
-  { uur: 24,  label: '1 dag' },
-  { uur: 48,  label: '2 dagen' },
-  { uur: 72,  label: '3 dagen' },
-  { uur: 120, label: '5 dagen' },
-  { uur: 168, label: '7 dagen' },
-  { uur: 336, label: '14 dagen' },
+// Eenheden voor de route-periode: vrij getal × eenheid → uren (1 uur t/m jaren)
+const ROUTE_EENHEDEN = [
+  { uur: 1,    enkel: 'uur',   meer: 'uur' },
+  { uur: 24,   enkel: 'dag',   meer: 'dagen' },
+  { uur: 168,  enkel: 'week',  meer: 'weken' },
+  { uur: 720,  enkel: 'maand', meer: 'maanden' },
+  { uur: 8760, enkel: 'jaar',  meer: 'jaar' },
 ];
 
 // Hulpcomponent: zoom naar posities van één type
@@ -137,7 +136,12 @@ export default function TrackerKaart() {
   const [openPaneel, setOpenPaneel] = useState(null); // welk FAB-menu open is
   const [zoomDoel, setZoomDoel] = useState(null);
   const [fabZoek, setFabZoek] = useState(''); // zoekterm in het open FAB-menu
-  const [routeUur, setRouteUur] = useState(24); // route-periode in uren (24u … 14 dagen)
+  // Route-periode: vrij getal × eenheid (uur/dag/week/maand/jaar) → uren
+  const [routeAantal, setRouteAantal] = useState(1);
+  const [routeEenheidUur, setRouteEenheidUur] = useState(24); // standaard: dag
+  const routeUur = Math.max(1, Math.round((Number(routeAantal) || 1) * routeEenheidUur));
+  const routeEenheid = ROUTE_EENHEDEN.find(e => e.uur === routeEenheidUur) || ROUTE_EENHEDEN[1];
+  const routeLabel = `${Number(routeAantal) || 1} ${(Number(routeAantal) || 1) === 1 ? routeEenheid.enkel : routeEenheid.meer}`;
 
   // Screensaver-intro: iconen zweven eerst over het scherm, daarna naar de dock
   const [intro, setIntro] = useState(true);
@@ -237,7 +241,7 @@ export default function TrackerKaart() {
                       >
                         {geselecteerd?.trackerId === pos.trackerId
                           ? '✕ Route verbergen'
-                          : `📍 Route tonen (${ROUTE_PERIODES.find(p => p.uur === routeUur)?.label || routeUur + 'u'})`}
+                          : `📍 Route tonen (${routeLabel})`}
                       </button>
                     </div>
                   </Popup>
@@ -359,13 +363,19 @@ export default function TrackerKaart() {
                       onChange={e => zetTypeOptie(type, 'routes', e.target.checked)} />
                     <span>Routes</span>
                   </label>
-                  <select className="fab-routes-periode" value={routeUur}
-                    onChange={e => setRouteUur(Number(e.target.value))}
-                    title="Periode van de route — langer voor de ronde om Noord-Holland">
-                    {ROUTE_PERIODES.map(p => (
-                      <option key={p.uur} value={p.uur}>{p.label}</option>
-                    ))}
-                  </select>
+                  <div className="fab-routes-periode"
+                    title="Periode van de route — vrij in te stellen (1 uur t/m jaren)">
+                    <input type="number" min="1" className="fab-routes-getal"
+                      value={routeAantal}
+                      onChange={e => setRouteAantal(
+                        e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value, 10) || 1))} />
+                    <select className="fab-routes-eenheid" value={routeEenheidUur}
+                      onChange={e => setRouteEenheidUur(Number(e.target.value))}>
+                      {ROUTE_EENHEDEN.map(eh => (
+                        <option key={eh.uur} value={eh.uur}>{eh.meer}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <button className="fab-menu-knop"
                   onClick={() => setZoomDoel(perType[type].map(p => [p.lat, p.lon]))}

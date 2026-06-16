@@ -383,15 +383,25 @@
   gap: 8px;
 }
 .fab-routes-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.fab-routes-periode {
-  padding: 4px 8px;
+.fab-routes-periode { display: flex; align-items: center; gap: 4px; }
+.fab-routes-getal {
+  width: 48px;
+  padding: 4px 6px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: right;
+}
+.fab-routes-eenheid {
+  padding: 4px 6px;
   border: 1px solid rgba(0,0,0,0.15);
   border-radius: 8px;
   font-size: 12px;
   background: rgba(255,255,255,0.9);
   cursor: pointer;
 }
-.fab-routes-periode:focus { outline: none; border-color: var(--fab-kleur); }
+.fab-routes-getal:focus,
+.fab-routes-eenheid:focus { outline: none; border-color: var(--fab-kleur); }
 
 .fab-menu-zoek {
   margin-top: 8px;
