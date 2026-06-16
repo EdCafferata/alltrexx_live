@@ -126,6 +126,7 @@ export default function TrackerKaart() {
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
   const [openPaneel, setOpenPaneel] = useState(null); // welk FAB-menu open is
   const [zoomDoel, setZoomDoel] = useState(null);
+  const [fabZoek, setFabZoek] = useState(''); // zoekterm in het open FAB-menu
 
   // Screensaver-intro: iconen zweven eerst over het scherm, daarna naar de dock
   const [intro, setIntro] = useState(true);
@@ -314,12 +315,19 @@ export default function TrackerKaart() {
 
       {/* ── Vijf floating knoppen — eerst screensaver, dan dock links ─────── */}
       <div className={`fab-kolom ${intro ? 'fab-screensaver' : ''}`}>
-        {Object.entries(ICOON_CONFIG).map(([type, cfg], i) => (
+        {Object.entries(ICOON_CONFIG).map(([type, cfg], i) => {
+          const fabTerm = fabZoek.trim().toLowerCase();
+          const zichtbareTrackers = (openPaneel === type && fabTerm)
+            ? perType[type].filter(p =>
+                [p.trackerNaam, p.externeId]
+                  .some(v => (v || '').toString().toLowerCase().includes(fabTerm)))
+            : perType[type];
+          return (
           <div key={type} className="fab-item" style={{ '--fab-index': i }}>
             <button
               className={`fab ${openPaneel === type ? 'fab-actief' : ''} ${!typeOpties[type].zichtbaar ? 'fab-uit' : ''}`}
               style={{ '--fab-kleur': cfg.kleur }}
-              onClick={() => setOpenPaneel(openPaneel === type ? null : type)}
+              onClick={() => { setOpenPaneel(openPaneel === type ? null : type); setFabZoek(''); }}
               title={cfg.label}
             >
               {cfg.emoji}
@@ -344,8 +352,13 @@ export default function TrackerKaart() {
                   disabled={perType[type].length === 0}>
                   🔍 Zoom naar {cfg.label.toLowerCase()}
                 </button>
+                {perType[type].length > 0 && (
+                  <input className="fab-menu-zoek" type="search"
+                    placeholder={`🔎 Zoek ${cfg.label.toLowerCase()} of MMSI…`}
+                    value={fabZoek} onChange={e => setFabZoek(e.target.value)} />
+                )}
                 <div className="fab-menu-lijst">
-                  {perType[type].map(pos => (
+                  {zichtbareTrackers.map(pos => (
                     <button key={pos.trackerId} className="fab-menu-tracker"
                       onClick={() => { setZoomDoel([[pos.lat, pos.lon]]); setGeselecteerd(pos); }}>
                       {pos.trackerNaam}
@@ -355,11 +368,15 @@ export default function TrackerKaart() {
                   {perType[type].length === 0 && (
                     <div className="fab-menu-leeg">Geen actieve trackers</div>
                   )}
+                  {perType[type].length > 0 && zichtbareTrackers.length === 0 && (
+                    <div className="fab-menu-leeg">Geen resultaten</div>
+                  )}
                 </div>
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Status balk */}

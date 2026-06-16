@@ -376,6 +376,18 @@
   cursor: default;
 }
 
+.fab-menu-zoek {
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+}
+.fab-menu-zoek:focus { border-color: var(--fab-kleur); }
+
 .fab-menu-lijst {
   margin-top: 10px;
   max-height: 180px;
