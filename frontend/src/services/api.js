@@ -36,3 +36,7 @@ export const adminSaveTracker = (key, tracker) =>
 /** Tracker verwijderen */
 export const adminDeleteTracker = (key, id) =>
   api.delete(`/admin/trackers/${id}`, adminHeaders(key));
+
+/** Alle posities (track-historie) van een tracker wissen; de boot blijft bestaan */
+export const adminWisPosities = (key, id) =>
+  api.delete(`/admin/trackers/${id}/posities`, adminHeaders(key));

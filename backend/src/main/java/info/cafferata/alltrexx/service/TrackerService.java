@@ -69,6 +69,14 @@ public class TrackerService {
         trackerRepo.deleteById(id);
     }
 
+    /** Wis alle posities (track-historie) van een tracker; de tracker zelf blijft bestaan. */
+    @Transactional
+    public long verwijderPosities(Long trackerId) {
+        return trackerRepo.findById(trackerId)
+            .map(positieRepo::deleteByTracker)
+            .orElse(0L);
+    }
+
     /**
      * Werk de scheepsgegevens van een tracker bij (op externeId/MMSI).
      * Lege waarden worden genegeerd zodat bestaande gegevens niet worden gewist.

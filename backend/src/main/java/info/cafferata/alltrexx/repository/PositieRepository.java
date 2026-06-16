@@ -14,6 +14,9 @@ public interface PositieRepository extends JpaRepository<Positie, Long> {
     /** Alle posities van een tracker, nieuwste eerst */
     List<Positie> findByTrackerOrderByTijdstipDesc(Tracker tracker);
 
+    /** Alle posities (track-historie) van een tracker wissen; geeft het aantal terug */
+    long deleteByTracker(Tracker tracker);
+
     /** Laatste bekende positie per tracker */
     Optional<Positie> findTopByTrackerOrderByTijdstipDesc(Tracker tracker);
 

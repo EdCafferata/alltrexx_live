@@ -61,4 +61,14 @@ public class AdminController {
         trackerService.verwijderTracker(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Alle posities (track-historie) van een tracker wissen; de boot blijft staan. */
+    @DeleteMapping("/trackers/{id}/posities")
+    public ResponseEntity<Void> wisPosities(
+            @RequestHeader(value = "X-Admin-Key", required = false) String key,
+            @PathVariable Long id) {
+        controleerKey(key);
+        trackerService.verwijderPosities(id);
+        return ResponseEntity.noContent().build();
+    }
 }

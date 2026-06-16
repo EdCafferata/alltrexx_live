@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { adminGetTrackers, adminSaveTracker, adminDeleteTracker } from '../services/api';
+import { adminGetTrackers, adminSaveTracker, adminDeleteTracker, adminWisPosities } from '../services/api';
 import './BeheerBoten.css';
 
 const KEY_OPSLAG = 'alltrexx-admin-key';
@@ -62,6 +62,15 @@ export default function BeheerBoten({ onSluiten }) {
     setBezig(true);
     try { await adminDeleteTracker(adminKey, id); await laden(adminKey); }
     catch { setFout('Verwijderen mislukt.'); }
+    finally { setBezig(false); }
+  };
+
+  const wisData = async (t) => {
+    const naam = t.bootnaam || t.naam;
+    if (!window.confirm(`Alle track-data van ${naam} wissen? De boot zelf blijft staan.`)) return;
+    setBezig(true);
+    try { await adminWisPosities(adminKey, t.id); await laden(adminKey); }
+    catch { setFout('Track-data wissen mislukt.'); }
     finally { setBezig(false); }
   };
 
@@ -138,7 +147,12 @@ export default function BeheerBoten({ onSluiten }) {
                       AIS {t.externeId || '—'} · {t.schipper || 'geen schipper'} · {t.type}
                     </div>
                   </div>
-                  <button className="beheer-del" onClick={() => verwijderen(t.id)}>🗑</button>
+                  <div className="beheer-acties">
+                    <button className="beheer-wis" title="Wis track-data (boot blijft)"
+                            onClick={() => wisData(t)}>🧹 Wis data</button>
+                    <button className="beheer-del" title="Boot verwijderen"
+                            onClick={() => verwijderen(t.id)}>🗑</button>
+                  </div>
                 </div>
               ))}
             </div>
