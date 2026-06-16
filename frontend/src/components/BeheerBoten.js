@@ -18,6 +18,9 @@ export default function BeheerBoten({ onSluiten }) {
   const [schipper, setSchipper] = useState('');
   const [bootnaam, setBootnaam] = useState('');
 
+  // zoeken in de lijst (bootnaam, naam, MMSI, schipper, type)
+  const [zoek, setZoek] = useState('');
+
   const laden = useCallback(async (key) => {
     setFout(null); setBezig(true);
     try {
@@ -62,6 +65,14 @@ export default function BeheerBoten({ onSluiten }) {
     finally { setBezig(false); }
   };
 
+  // gefilterde lijst op basis van de zoekterm
+  const term = zoek.trim().toLowerCase();
+  const zichtbaar = term
+    ? trackers.filter(t =>
+        [t.bootnaam, t.naam, t.externeId, t.schipper, t.type]
+          .some(v => (v || '').toString().toLowerCase().includes(term)))
+    : trackers;
+
   return (
     <div className="beheer-overlay" onClick={onSluiten}>
       <div className="beheer-modal" onClick={e => e.stopPropagation()}>
@@ -98,10 +109,28 @@ export default function BeheerBoten({ onSluiten }) {
               <button type="submit" disabled={bezig}>+ Toevoegen</button>
             </form>
 
+            {/* Zoeken */}
+            <div className="beheer-zoekrij">
+              <input
+                type="search"
+                placeholder="🔎 Zoek op boot, MMSI of schipper…"
+                value={zoek}
+                onChange={e => setZoek(e.target.value)}
+              />
+              {zoek && (
+                <span className="beheer-zoek-aantal">
+                  {zichtbaar.length} / {trackers.length}
+                </span>
+              )}
+            </div>
+
             {/* Lijst */}
             <div className="beheer-lijst">
               {trackers.length === 0 && <div className="beheer-leeg">Nog geen trackers.</div>}
-              {trackers.map(t => (
+              {trackers.length > 0 && zichtbaar.length === 0 && (
+                <div className="beheer-leeg">Geen resultaten voor “{zoek}”.</div>
+              )}
+              {zichtbaar.map(t => (
                 <div className="beheer-item" key={t.id}>
                   <div>
                     <strong>{t.bootnaam || t.naam}</strong>

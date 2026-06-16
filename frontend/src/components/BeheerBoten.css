@@ -51,6 +51,10 @@
   color: #ffb4b4; border-radius: 10px; padding: 8px 12px; font-size: 13px; margin: 8px 0;
 }
 
+.beheer-zoekrij { display: flex; align-items: center; gap: 8px; margin: 4px 0 4px; }
+.beheer-zoekrij input { flex: 1; }
+.beheer-zoek-aantal { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+
 .beheer-lijst { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .beheer-leeg { color: rgba(255,255,255,0.5); font-size: 14px; padding: 8px 0; }
 
