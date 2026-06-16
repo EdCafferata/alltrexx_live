@@ -65,11 +65,11 @@ cp .env.example .env && nano .env   # eenmalig: vul API keys in
 - Shortcode: `[alltrexx_kaart hoogte="600"]`
 
 ## Volgende stappen
-- [ ] Docker installeren op Synology (Container Manager)
-- [ ] .env invullen en ./start.sh start uitvoeren
+- [x] Docker installeren op Synology (Container Manager)
+- [x] .env invullen en ./start.sh start uitvoeren
 - [ ] WordPress plugin activeren
 - [ ] MarineTraffic API key aanvragen
-- [ ] Boten toevoegen met MMSI nummer
+- [x] Boten toevoegen met MMSI nummer
 - [ ] JWT auth overnemen uit master branch
 - [ ] WebSockets voor echte live updates
 - [ ] Alltrexx Mobile koppelen
