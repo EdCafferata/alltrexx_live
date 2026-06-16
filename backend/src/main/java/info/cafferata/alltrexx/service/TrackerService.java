@@ -58,6 +58,7 @@ public class TrackerService {
         if (invoer.getExterneId() != null)   doel.setExterneId(invoer.getExterneId());
         if (invoer.getBootnaam() != null)    doel.setBootnaam(invoer.getBootnaam());
         if (invoer.getSchipper() != null)    doel.setSchipper(invoer.getSchipper());
+        if (invoer.getTelefoon() != null)    doel.setTelefoon(invoer.getTelefoon());
         if (invoer.getOmschrijving() != null) doel.setOmschrijving(invoer.getOmschrijving());
         if (doel.getNaam() == null) doel.setNaam(invoer.getExterneId()); // fallback
         doel.setActief(true);

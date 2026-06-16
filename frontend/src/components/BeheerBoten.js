@@ -25,10 +25,10 @@ export default function BeheerBoten({ onSluiten }) {
 
   // nieuwe-tracker formulier
   const [type, setType] = useState('BOAT');
-  const [ais, setAis] = useState('');
-  const [schipper, setSchipper] = useState('');
-  const [bootnaam, setBootnaam] = useState('');
-  const typeCfg = TYPES.find(t => t.type === type) || TYPES[0];
+  const [naam, setNaam] = useState('');
+  const [telefoon, setTelefoon] = useState('');
+  const [ais, setAis] = useState(''); // alleen boten: MMSI
+  const isBoot = type === 'BOAT';
 
   // zoeken in de lijst (bootnaam, naam, MMSI, schipper, type)
   const [zoek, setZoek] = useState('');
@@ -52,17 +52,21 @@ export default function BeheerBoten({ onSluiten }) {
 
   const toevoegen = async (e) => {
     e.preventDefault();
-    if (!ais.trim()) { setFout(`${typeCfg.idLabel} is verplicht.`); return; }
+    // Boot wordt gematcht op MMSI; overige types op telefoonnummer (sleutel voor de mobiele app)
+    if (isBoot && !ais.trim()) { setFout('AIS-nummer (MMSI) is verplicht.'); return; }
+    if (!isBoot && !telefoon.trim()) { setFout('Telefoonnummer is verplicht.'); return; }
+    if (!naam.trim()) { setFout('Naam is verplicht.'); return; }
     setFout(null); setBezig(true);
     try {
       await adminSaveTracker(adminKey, {
-        externeId: ais.trim(),
         type,
-        naam: bootnaam.trim() || ais.trim(),
-        bootnaam: bootnaam.trim() || null,
-        schipper: schipper.trim() || null,
+        naam: naam.trim(),
+        telefoon: telefoon.trim() || null,
+        // matching-sleutel: boot = MMSI, anders het telefoonnummer
+        externeId: isBoot ? ais.trim() : telefoon.trim(),
+        schipper: isBoot ? naam.trim() : null,
       });
-      setAis(''); setSchipper(''); setBootnaam('');
+      setNaam(''); setTelefoon(''); setAis('');
       await laden(adminKey);
     } catch (e) {
       setFout(e?.response?.status === 401 ? 'Ongeldige admin-key.' : 'Opslaan mislukt.');
@@ -78,8 +82,8 @@ export default function BeheerBoten({ onSluiten }) {
   };
 
   const wisData = async (t) => {
-    const naam = t.bootnaam || t.naam;
-    if (!window.confirm(`Alle track-data van ${naam} wissen? De boot zelf blijft staan.`)) return;
+    const label = t.bootnaam || t.naam;
+    if (!window.confirm(`Alle track-data van ${label} wissen? De tracker zelf blijft staan.`)) return;
     setBezig(true);
     try { await adminWisPosities(adminKey, t.id); await laden(adminKey); }
     catch { setFout('Track-data wissen mislukt.'); }
@@ -90,7 +94,7 @@ export default function BeheerBoten({ onSluiten }) {
   const term = zoek.trim().toLowerCase();
   const zichtbaar = term
     ? trackers.filter(t =>
-        [t.bootnaam, t.naam, t.externeId, t.schipper, t.type]
+        [t.bootnaam, t.naam, t.externeId, t.schipper, t.telefoon, t.type]
           .some(v => (v || '').toString().toLowerCase().includes(term)))
     : trackers;
 
@@ -125,14 +129,14 @@ export default function BeheerBoten({ onSluiten }) {
                       onChange={e => setType(e.target.value)}>
                 {TYPES.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
               </select>
-              <input placeholder={`${typeCfg.idLabel} *`} value={ais}
-                     onChange={e => setAis(e.target.value)} />
-              <input placeholder={type === 'BOAT' ? 'Schipper' : 'Bestuurder / eigenaar'} value={schipper}
-                     onChange={e => setSchipper(e.target.value)} />
-              <input placeholder={type === 'BOAT'
-                       ? 'Bootnaam (optioneel — komt anders van AIS)'
-                       : 'Naam / label (optioneel)'} value={bootnaam}
-                     onChange={e => setBootnaam(e.target.value)} />
+              <input placeholder="Naam *" value={naam}
+                     onChange={e => setNaam(e.target.value)} />
+              <input type="tel" placeholder={isBoot ? 'Telefoonnummer (optioneel)' : 'Telefoonnummer *'}
+                     value={telefoon} onChange={e => setTelefoon(e.target.value)} />
+              {isBoot && (
+                <input placeholder="AIS-nummer (MMSI) *" value={ais}
+                       onChange={e => setAis(e.target.value)} />
+              )}
               <button type="submit" disabled={bezig}>+ Toevoegen</button>
             </form>
 
@@ -162,13 +166,18 @@ export default function BeheerBoten({ onSluiten }) {
                   <div>
                     <strong>{t.bootnaam || t.naam}</strong>
                     <div className="beheer-sub">
-                      AIS {t.externeId || '—'} · {t.schipper || 'geen schipper'} · {t.type}
+                      {(TYPES.find(x => x.type === t.type) || {}).label || t.type}
+                      {' · '}
+                      {t.type === 'BOAT'
+                        ? `MMSI ${t.externeId || '—'}`
+                        : `📞 ${t.telefoon || t.externeId || '—'}`}
+                      {t.type === 'BOAT' && t.telefoon ? ` · 📞 ${t.telefoon}` : ''}
                     </div>
                   </div>
                   <div className="beheer-acties">
-                    <button className="beheer-wis" title="Wis track-data (boot blijft)"
+                    <button className="beheer-wis" title="Wis track-data (tracker blijft)"
                             onClick={() => wisData(t)}>🧹 Wis data</button>
-                    <button className="beheer-del" title="Boot verwijderen"
+                    <button className="beheer-del" title="Tracker verwijderen"
                             onClick={() => verwijderen(t.id)}>🗑</button>
                   </div>
                 </div>

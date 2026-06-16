@@ -36,6 +36,9 @@ public class Tracker {
     /** Schipper — handmatig of via de RNH/mobile-app ingevoerd (niet van MarineTraffic). */
     private String schipper;
 
+    /** Telefoonnummer — sleutel waarmee de mobiele app posities binnenstuurt (niet-boten). */
+    private String telefoon;
+
     /** Omschrijving / extra info */
     private String omschrijving;
 
