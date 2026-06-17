@@ -4,15 +4,18 @@ import './BeheerBoten.css';
 
 const KEY_OPSLAG = 'alltrexx-admin-key';
 
-// Alle tracker-types die je kunt beheren (moet overeenkomen met TrackerType in de backend)
+// Alle tracker-types die je kunt beheren (moet overeenkomen met TrackerType in de backend).
+// 'extern' = extern volg-ID (sleutel voor een databron, zoals AIS/ADS-B). Types zonder
+// 'extern' worden door de mobiele app gevolgd op telefoonnummer (+ token).
 const TYPES = [
-  { type: 'BOAT',   label: '⛵ Boot',       idLabel: 'AIS-nummer (MMSI)' },
-  { type: 'PERSON', label: '🚶 Voetganger', idLabel: 'ID / device-id' },
-  { type: 'BIKE',   label: '🚴 Fietser',    idLabel: 'ID / device-id' },
-  { type: 'CAR',    label: '🚗 Auto',       idLabel: 'ID / kenteken' },
-  { type: 'TRAIN',  label: '🚆 Trein',      idLabel: 'ID / treinnummer' },
-  { type: 'PLANE',  label: '✈️ Vliegtuig',  idLabel: 'ID / vluchtnummer' },
+  { type: 'BOAT',   label: '⛵ Boot',       extern: 'AIS-nummer (MMSI)', idKort: 'MMSI' },
+  { type: 'PLANE',  label: '✈️ Vliegtuig',  extern: 'ICAO hex (24-bit)', idKort: 'ICAO' },
+  { type: 'PERSON', label: '🚶 Voetganger' },
+  { type: 'BIKE',   label: '🚴 Fietser' },
+  { type: 'CAR',    label: '🚗 Auto' },
+  { type: 'TRAIN',  label: '🚆 Trein' },
 ];
+const typeConfig = (t) => TYPES.find(x => x.type === t);
 
 // ── Beheerscherm: boten/AIS toevoegen, bekijken, verwijderen ────────────────
 // De admin-key wordt lokaal in de browser bewaard (niet in de publieke bundle).
@@ -27,8 +30,9 @@ export default function BeheerBoten({ onSluiten }) {
   const [type, setType] = useState('BOAT');
   const [naam, setNaam] = useState('');
   const [telefoon, setTelefoon] = useState('');
-  const [ais, setAis] = useState(''); // alleen boten: MMSI
-  const isBoot = type === 'BOAT';
+  const [ais, setAis] = useState(''); // extern volg-ID (MMSI / ICAO hex)
+  const typeCfg = typeConfig(type) || TYPES[0];
+  const heeftExtern = !!typeCfg.extern; // BOAT/PLANE: extern ID; anders telefoon
 
   // zoeken in de lijst (bootnaam, naam, MMSI, schipper, type)
   const [zoek, setZoek] = useState('');
@@ -53,9 +57,10 @@ export default function BeheerBoten({ onSluiten }) {
 
   const toevoegen = async (e) => {
     e.preventDefault();
-    // Boot wordt gematcht op MMSI; overige types op telefoonnummer (sleutel voor de mobiele app)
-    if (isBoot && !ais.trim()) { setFout('AIS-nummer (MMSI) is verplicht.'); return; }
-    if (!isBoot && !telefoon.trim()) { setFout('Telefoonnummer is verplicht.'); return; }
+    // Extern getrackt (boot=MMSI, vliegtuig=ICAO hex) → match op extern ID;
+    // overige types → match op telefoonnummer (sleutel voor de mobiele app).
+    if (heeftExtern && !ais.trim()) { setFout(`${typeCfg.extern} is verplicht.`); return; }
+    if (!heeftExtern && !telefoon.trim()) { setFout('Telefoonnummer is verplicht.'); return; }
     if (!naam.trim()) { setFout('Naam is verplicht.'); return; }
     setFout(null); setBezig(true);
     try {
@@ -63,9 +68,9 @@ export default function BeheerBoten({ onSluiten }) {
         type,
         naam: naam.trim(),
         telefoon: telefoon.trim() || null,
-        // matching-sleutel: boot = MMSI, anders het telefoonnummer
-        externeId: isBoot ? ais.trim() : telefoon.trim(),
-        schipper: isBoot ? naam.trim() : null,
+        // matching-sleutel: extern ID (lowercase voor hex-match), anders telefoonnummer
+        externeId: heeftExtern ? ais.trim().toLowerCase() : telefoon.trim(),
+        schipper: heeftExtern ? naam.trim() : null,
       });
       setNaam(''); setTelefoon(''); setAis('');
       await laden(adminKey);
@@ -140,12 +145,12 @@ export default function BeheerBoten({ onSluiten }) {
               </select>
               <input placeholder="Naam *" value={naam}
                      onChange={e => setNaam(e.target.value)} />
-              <input type="tel" placeholder={isBoot ? 'Telefoonnummer (optioneel)' : 'Telefoonnummer *'}
-                     value={telefoon} onChange={e => setTelefoon(e.target.value)} />
-              {isBoot && (
-                <input placeholder="AIS-nummer (MMSI) *" value={ais}
+              {heeftExtern && (
+                <input placeholder={`${typeCfg.extern} *`} value={ais}
                        onChange={e => setAis(e.target.value)} />
               )}
+              <input type="tel" placeholder={heeftExtern ? 'Telefoonnummer (optioneel)' : 'Telefoonnummer *'}
+                     value={telefoon} onChange={e => setTelefoon(e.target.value)} />
               <button type="submit" disabled={bezig}>+ Toevoegen</button>
             </form>
 
@@ -175,14 +180,14 @@ export default function BeheerBoten({ onSluiten }) {
                   <div className="beheer-info">
                     <strong>{t.bootnaam || t.naam}</strong>
                     <div className="beheer-sub">
-                      {(TYPES.find(x => x.type === t.type) || {}).label || t.type}
+                      {(typeConfig(t.type) || {}).label || t.type}
                       {' · '}
-                      {t.type === 'BOAT'
-                        ? `MMSI ${t.externeId || '—'}`
+                      {typeConfig(t.type)?.extern
+                        ? `${typeConfig(t.type).idKort} ${t.externeId || '—'}`
                         : `📞 ${t.telefoon || t.externeId || '—'}`}
-                      {t.type === 'BOAT' && t.telefoon ? ` · 📞 ${t.telefoon}` : ''}
+                      {typeConfig(t.type)?.extern && t.telefoon ? ` · 📞 ${t.telefoon}` : ''}
                     </div>
-                    {t.type !== 'BOAT' && t.token && (
+                    {!typeConfig(t.type)?.extern && t.token && (
                       <div className="beheer-token" title="Token voor de mobiele app">
                         🔑 <code>{t.token}</code>
                         <button type="button" className="beheer-kopieer"
