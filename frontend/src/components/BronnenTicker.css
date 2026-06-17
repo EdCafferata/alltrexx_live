@@ -1,15 +1,19 @@
-/* Twee chips die periodiek over het scherm zweven met de databron-status. */
+/* Twee bron-chips: vaste positie, gecentreerd boven in het scherm, onder elkaar. */
 .bron-ticker {
   position: fixed;
-  inset: 0;
-  pointer-events: none;       /* klikken gaat door naar de kaart … */
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1500;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;        /* klikken gaat door naar de kaart … */
 }
 
 .bron-chip {
-  position: absolute;
-  pointer-events: auto;       /* … behalve op de chip zelf (link) */
+  pointer-events: auto;        /* … behalve op de chip zelf (link) */
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -24,7 +28,10 @@
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  opacity: 0.5;                /* 50% doorzichtig — valt veel minder op */
+  transition: opacity 0.2s;
 }
+.bron-chip:hover { opacity: 1; }  /* bij hover weer goed leesbaar */
 
 .bron-dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -33,23 +40,6 @@
 .bron-naam { font-weight: 700; }
 .bron-url  { color: #8ad0ff; }
 .bron-tijd { color: #9fb2cf; }
-
-/* Twee "rondjes": elk een eigen baan + timing, ze drijven van rechts naar links. */
-.bron-baan-1 { top: 14%;  animation: bron-zweef 26s linear infinite; }
-.bron-baan-2 { top: 82%;  animation: bron-zweef 32s linear infinite; animation-delay: 8s; }
-
-@keyframes bron-zweef {
-  0%   { left: 100vw;  opacity: 0; }
-  6%   { opacity: 1; }
-  94%  { opacity: 1; }
-  100% { left: -60vw;  opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bron-baan-1, .bron-baan-2 { animation: none; left: auto; right: 12px; }
-  .bron-baan-1 { top: 12px; }
-  .bron-baan-2 { top: 52px; }
-}
 
 @media (max-width: 640px) {
   .bron-chip { font-size: 11px; padding: 6px 12px; gap: 7px; }

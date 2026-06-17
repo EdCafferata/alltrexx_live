@@ -39,11 +39,11 @@ export default function BronnenTicker() {
 
   return (
     <div className="bron-ticker" aria-hidden="false">
-      {BRONNEN.map((b, i) => {
+      {BRONNEN.map((b) => {
         const s = status[b.code];
         return (
           <a key={b.code} href={b.url} target="_blank" rel="noopener noreferrer"
-             className={`bron-chip bron-baan-${i + 1}`}>
+             className="bron-chip">
             <span className="bron-dot" />
             <span className="bron-naam">📡 {b.label}</span>
             <span className="bron-url">{b.url.replace(/^https?:\/\//, '')}</span>
