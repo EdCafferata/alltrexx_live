@@ -1,7 +1,7 @@
 /* Twee bron-chips: vaste positie, gecentreerd boven in het scherm, onder elkaar. */
 .bron-ticker {
   position: fixed;
-  top: 12px;
+  top: calc(12px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1500;
