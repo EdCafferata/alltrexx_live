@@ -43,4 +43,4 @@ export const adminWisPosities = (key, id) =>
 
 /** Zoek ICAO 24-bit hex bij een vliegtuigregistratie (bv. PH-USN) */
 export const adminZoekIcao = (key, reg) =>
-  api.get('/admin/icao', { params: { reg }, headers: { 'X-Admin-Key': key } }).then(r => r.data);
+  api.get('/admin/vliegtuig/icao', { params: { reg }, headers: { 'X-Admin-Key': key } }).then(r => r.data);
