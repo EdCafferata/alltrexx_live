@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getLiveKaart, getRoute } from '../services/api';
@@ -109,17 +109,61 @@ function ZoomNaar({ doel }) {
   return null;
 }
 
+// Hulpcomponent: houdt de huidige kaartweergave (center + zoom) bij
+function ViewVolger({ onWijzig }) {
+  const map = useMapEvents({
+    moveend: () => { const c = map.getCenter(); onWijzig({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }); },
+    zoomend: () => { const c = map.getCenter(); onWijzig({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }); },
+  });
+  return null;
+}
+
+// Beginweergave bepalen: eerst uit de URL (?lat&lon&z&laag&types), anders een
+// vastgehouden weergave uit localStorage, anders heel Nederland.
+function leesStartConfig() {
+  const p = new URLSearchParams(window.location.search);
+  const lat = parseFloat(p.get('lat'));
+  const lon = parseFloat(p.get('lon'));
+  const z = parseInt(p.get('z'), 10);
+  if (!isNaN(lat) && !isNaN(lon)) {
+    return {
+      lat, lon, zoom: !isNaN(z) ? z : 12,
+      preset: p.get('laag') || 'standaard',
+      types: p.get('types') ? p.get('types').split(',') : null,
+      pinned: false,
+    };
+  }
+  try {
+    const opg = JSON.parse(localStorage.getItem('alltrexx-view') || 'null');
+    if (localStorage.getItem('alltrexx-view-pin') === '1' && opg) {
+      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'standaard', types: null, pinned: true };
+    }
+  } catch { /* negeren */ }
+  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'standaard', types: null, pinned: false };
+}
+
 export default function TrackerKaart() {
   const [posities, setPosities] = useState([]);
   const [geselecteerd, setGeselecteerd] = useState(null);
   const [route, setRoute] = useState([]);
 
+  // Beginweergave (URL / vastgehouden / standaard) — eenmalig bepalen
+  const startRef = useRef(null);
+  if (!startRef.current) startRef.current = leesStartConfig();
+  const start = startRef.current;
+  const startPreset = KAART_PRESETS[start.preset] ? start.preset : 'standaard';
+
   // Kaartopties
-  const [preset, setPreset] = useState('standaard');
+  const [preset, setPreset] = useState(startPreset);
   const [overlaysAan, setOverlaysAan] = useState(
-    Object.fromEntries(Object.keys(OVERLAYS).map(k => [k, false]))
+    Object.fromEntries(Object.keys(OVERLAYS).map(k => [k, KAART_PRESETS[startPreset].overlays.includes(k)]))
   );
   const [lagenOpen, setLagenOpen] = useState(false);
+
+  // Huidige weergave + vasthouden/delen
+  const [huidigeView, setHuidigeView] = useState({ lat: start.lat, lon: start.lon, zoom: start.zoom });
+  const [vastgezet, setVastgezet] = useState(start.pinned);
+  const [gedeeld, setGedeeld] = useState(false);
 
   const kiesPreset = (key) => {
     setPreset(key);
@@ -130,7 +174,10 @@ export default function TrackerKaart() {
 
   // Per type: zichtbaar + routes aan/uit
   const [typeOpties, setTypeOpties] = useState(() =>
-    Object.fromEntries(Object.keys(ICOON_CONFIG).map(t => [t, { zichtbaar: true, routes: false }]))
+    Object.fromEntries(Object.keys(ICOON_CONFIG).map(t => [t, {
+      zichtbaar: start.types ? start.types.includes(t) : true,
+      routes: false,
+    }]))
   );
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
   const [openPaneel, setOpenPaneel] = useState(null); // welk FAB-menu open is
@@ -142,6 +189,33 @@ export default function TrackerKaart() {
   const routeUur = Math.max(1, Math.round((Number(routeAantal) || 1) * routeEenheidUur));
   const routeEenheid = ROUTE_EENHEDEN.find(e => e.uur === routeEenheidUur) || ROUTE_EENHEDEN[1];
   const routeLabel = `${Number(routeAantal) || 1} ${(Number(routeAantal) || 1) === 1 ? routeEenheid.enkel : routeEenheid.meer}`;
+
+  // Vastgehouden weergave bewaren/wissen in de browser
+  useEffect(() => {
+    if (vastgezet) {
+      localStorage.setItem('alltrexx-view', JSON.stringify(huidigeView));
+      localStorage.setItem('alltrexx-view-pin', '1');
+    } else {
+      localStorage.removeItem('alltrexx-view-pin');
+    }
+  }, [vastgezet, huidigeView]);
+
+  // Deel-link bouwen (positie + zoom + kaartlaag + zichtbare types) en kopiëren
+  const deelWeergave = () => {
+    const zichtbaar = Object.keys(typeOpties).filter(t => typeOpties[t].zichtbaar);
+    const p = new URLSearchParams();
+    p.set('lat', huidigeView.lat.toFixed(5));
+    p.set('lon', huidigeView.lon.toFixed(5));
+    p.set('z', String(Math.round(huidigeView.zoom)));
+    if (preset !== 'standaard') p.set('laag', preset);
+    if (zichtbaar.length < Object.keys(typeOpties).length) p.set('types', zichtbaar.join(','));
+    const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url)
+        .then(() => { setGedeeld(true); setTimeout(() => setGedeeld(false), 1800); })
+        .catch(() => { /* clipboard niet beschikbaar */ });
+    }
+  };
 
   // Screensaver-intro: iconen zweven eerst over het scherm, daarna naar de dock
   const [intro, setIntro] = useState(true);
@@ -198,7 +272,7 @@ export default function TrackerKaart() {
 
   return (
     <div className="kaart-wrapper">
-      <MapContainer center={[52.5, 5.0]} zoom={7} zoomControl={false}
+      <MapContainer center={[start.lat, start.lon]} zoom={start.zoom} zoomControl={false}
         style={{ height: '100%', width: '100%' }}>
 
         {/* Basiskaart volgens gekozen preset */}
@@ -212,6 +286,7 @@ export default function TrackerKaart() {
         )}
 
         <ZoomNaar doel={zoomDoel} />
+        <ViewVolger onWijzig={setHuidigeView} />
 
         {/* Markers per type */}
         {Object.entries(ICOON_CONFIG).map(([type, cfg]) =>
@@ -275,6 +350,21 @@ export default function TrackerKaart() {
           />
         )}
       </MapContainer>
+
+      {/* ── Deel-/vasthoud-chip (linksonder) ──────────────────────────────── */}
+      <div className={`deel-chip ${vastgezet ? 'deel-chip-vast' : ''}`}>
+        <span className="deel-coord" title="Huidige weergave">
+          📍 {huidigeView.lat.toFixed(4)}, {huidigeView.lon.toFixed(4)} · z{Math.round(huidigeView.zoom)}
+        </span>
+        <button className="deel-knop" onClick={() => setVastgezet(v => !v)}
+          title="Deze weergave onthouden in deze browser">
+          {vastgezet ? '📌 Vast' : '📌 Vasthouden'}
+        </button>
+        <button className="deel-knop" onClick={deelWeergave}
+          title="Deel-link naar deze weergave kopiëren">
+          {gedeeld ? '✓ Gekopieerd' : '🔗 Deel'}
+        </button>
+      </div>
 
       {/* ── Lagen-paneel (rechtsboven) ────────────────────────────────────── */}
       <button className="lagen-knop" onClick={() => setLagenOpen(!lagenOpen)}
