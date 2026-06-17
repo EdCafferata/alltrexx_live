@@ -1,0 +1,7 @@
+/* Vliegtuig-specifiek: registratie → ICAO-hex opzoeken (binnen het beheerscherm).
+   Inputs/knoppen erven hun stijl van .beheer-modal; hier alleen de layout. */
+.vlieg-zoek { display: flex; flex-direction: column; gap: 6px; }
+.vlieg-zoek-rij { display: flex; gap: 8px; }
+.vlieg-zoek-rij input { flex: 1; }
+.vlieg-zoek-rij button { white-space: nowrap; }
+.vlieg-zoek-fout { font-size: 12px; color: #ffb4b4; }
