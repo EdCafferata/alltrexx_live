@@ -58,10 +58,14 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
-    # Vangnet: AISHub-host hard in /etc/hosts zodat de poller NOOIT DNS nodig heeft.
-    # IP geverifieerd 16 juni 2026 (data.aishub.net A-record). Bijwerken als 't ooit wijzigt.
+    # Vangnet: externe hosts hard in /etc/hosts zodat ze NOOIT DNS nodig hebben
+    # (algemene container-DNS werkt niet op deze NAS). IP's geverifieerd 17 juni 2026;
+    # hexdb.io + airplanes.live zitten achter Cloudflare (anycast, stabiel). Bijwerken
+    # als een host ooit naar een ander IP wijst.
     extra_hosts:
       - "data.aishub.net:144.76.105.244"
+      - "hexdb.io:104.21.0.112"
+      - "api.airplanes.live:104.26.2.20"
     working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
