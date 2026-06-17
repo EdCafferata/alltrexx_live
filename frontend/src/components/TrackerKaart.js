@@ -128,7 +128,7 @@ function leesStartConfig() {
   if (!isNaN(lat) && !isNaN(lon)) {
     return {
       lat, lon, zoom: !isNaN(z) ? z : 12,
-      preset: p.get('laag') || 'standaard',
+      preset: p.get('laag') || 'boot',
       types: p.get('types') ? p.get('types').split(',') : null,
       pinned: false,
     };
@@ -136,10 +136,11 @@ function leesStartConfig() {
   try {
     const opg = JSON.parse(localStorage.getItem('alltrexx-view') || 'null');
     if (localStorage.getItem('alltrexx-view-pin') === '1' && opg) {
-      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'standaard', types: null, pinned: true };
+      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'boot', types: null, pinned: true };
     }
   } catch { /* negeren */ }
-  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'standaard', types: null, pinned: false };
+  // Standaard-start: Boot-kaart, alleen boten zichtbaar + routes aan
+  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'boot', types: null, pinned: false };
 }
 
 export default function TrackerKaart() {
@@ -151,7 +152,7 @@ export default function TrackerKaart() {
   const startRef = useRef(null);
   if (!startRef.current) startRef.current = leesStartConfig();
   const start = startRef.current;
-  const startPreset = KAART_PRESETS[start.preset] ? start.preset : 'standaard';
+  const startPreset = KAART_PRESETS[start.preset] ? start.preset : 'boot';
 
   // Kaartopties
   const [preset, setPreset] = useState(startPreset);
@@ -172,11 +173,12 @@ export default function TrackerKaart() {
     ));
   };
 
-  // Per type: zichtbaar + routes aan/uit
+  // Per type: zichtbaar + routes aan/uit. Standaard (geen URL-types): alleen Boten
+  // zichtbaar én hun route aan; een deel-link met types overschrijft dit.
   const [typeOpties, setTypeOpties] = useState(() =>
     Object.fromEntries(Object.keys(ICOON_CONFIG).map(t => [t, {
-      zichtbaar: start.types ? start.types.includes(t) : true,
-      routes: false,
+      zichtbaar: start.types ? start.types.includes(t) : (t === 'BOAT'),
+      routes: start.types ? false : (t === 'BOAT'),
     }]))
   );
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
