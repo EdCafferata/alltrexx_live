@@ -522,5 +522,17 @@
     "type": "PLANE",
     "externeId": "484a8b",
     "actief": true
+  },
+  {
+    "naam": "PH-CCL",
+    "type": "PLANE",
+    "externeId": "4852ed",
+    "actief": true
+  },
+  {
+    "naam": "PH-VSQ",
+    "type": "PLANE",
+    "externeId": "48442a",
+    "actief": true
   }
 ]
