@@ -70,27 +70,6 @@ public class TrackerService {
         return trackerRepo.save(doel);
     }
 
-    /**
-     * Sla een positie op vanuit de mobiele app op basis van de toestel-token.
-     * Matcht de token op een actieve tracker; gooit een fout als de token onbekend of inactief is.
-     */
-    @Transactional
-    public Positie slaPositieOpViaToken(String token, double lat, double lon,
-                                        double snelheid, double koers, double hoogte) {
-        Tracker tracker = trackerRepo.findByToken(token)
-            .filter(Tracker::isActief)
-            .orElseThrow(() -> new IllegalArgumentException("Onbekende of inactieve token"));
-
-        Positie positie = Positie.builder()
-            .tracker(tracker)
-            .lat(lat).lon(lon)
-            .snelheid(snelheid).koers(koers).hoogte(hoogte)
-            .tijdstip(LocalDateTime.now())
-            .bron("MOBIEL")
-            .build();
-        return positieRepo.save(positie);
-    }
-
     @Transactional
     public void verwijderTracker(Long id) {
         trackerRepo.deleteById(id);

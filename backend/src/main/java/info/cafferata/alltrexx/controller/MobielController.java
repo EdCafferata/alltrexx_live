@@ -1,7 +1,7 @@
 package info.cafferata.alltrexx.controller;
 
 import info.cafferata.alltrexx.model.Positie;
-import info.cafferata.alltrexx.service.TrackerService;
+import info.cafferata.alltrexx.service.MobielService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class MobielController {
 
-    private final TrackerService trackerService;
+    private final MobielService mobielService;
 
     @PostMapping("/positie")
     public ResponseEntity<Positie> nieuwePositie(@RequestBody Map<String, Object> body) {
@@ -42,7 +42,7 @@ public class MobielController {
         double hoogte   = body.get("hoogte")   != null ? ((Number) body.get("hoogte")).doubleValue()   : 0;
 
         try {
-            Positie opgeslagen = trackerService.slaPositieOpViaToken(token, lat, lon, snelheid, koers, hoogte);
+            Positie opgeslagen = mobielService.slaPositieOpViaToken(token, lat, lon, snelheid, koers, hoogte);
             return ResponseEntity.ok(opgeslagen);
         } catch (IllegalArgumentException e) {
             // onbekende of inactieve token → 403 (toestel niet (meer) geactiveerd/geabonneerd)
