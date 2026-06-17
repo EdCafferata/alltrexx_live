@@ -453,6 +453,21 @@
 
 /* ── Status balk (glas) ─────────────────────────────────── */
 /* Deel-/vasthoud-chip: linksonder, glas, 50% doorzichtig (zoals de bron-ticker). */
+/* Logo linksboven op de kaart (rond badge, klikt naar alltrexx.live). */
+.kaart-logo {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 1001;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.kaart-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 .deel-chip {
   position: absolute;
   bottom: 30px;

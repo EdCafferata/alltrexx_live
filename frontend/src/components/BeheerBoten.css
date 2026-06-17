@@ -86,6 +86,14 @@
   font-size: 12px !important; flex-shrink: 0;
 }
 .beheer-acties { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.beheer-edit {
+  background: rgba(120,170,255,0.18) !important; color: #cfe0ff !important;
+  padding: 6px 10px !important; font-size: 12px !important; white-space: nowrap;
+}
+.beheer-edit:hover { background: rgba(120,170,255,0.32) !important; }
+.beheer-annuleer {
+  background: rgba(255,255,255,0.10) !important; font-weight: 400 !important;
+}
 .beheer-wis {
   background: rgba(255,180,60,0.18) !important; color: #ffd591 !important;
   padding: 6px 10px !important; font-size: 12px !important; white-space: nowrap;

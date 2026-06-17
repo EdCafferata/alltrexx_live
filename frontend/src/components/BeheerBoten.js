@@ -32,6 +32,7 @@ export default function BeheerBoten({ onSluiten }) {
   const [naam, setNaam] = useState('');
   const [telefoon, setTelefoon] = useState('');
   const [ais, setAis] = useState(''); // extern volg-ID (MMSI / ICAO hex)
+  const [bewerktId, setBewerktId] = useState(null); // niet-null = bestaande tracker bewerken
   const typeCfg = typeConfig(type) || TYPES[0];
   const heeftExtern = !!typeCfg.extern; // BOAT/PLANE: extern ID; anders telefoon
 
@@ -73,11 +74,26 @@ export default function BeheerBoten({ onSluiten }) {
         externeId: heeftExtern ? ais.trim().toLowerCase() : telefoon.trim(),
         schipper: heeftExtern ? naam.trim() : null,
       });
-      setNaam(''); setTelefoon(''); setAis('');
+      setNaam(''); setTelefoon(''); setAis(''); setBewerktId(null);
       await laden(adminKey);
     } catch (e) {
       setFout(e?.response?.status === 401 ? 'Ongeldige admin-key.' : 'Opslaan mislukt.');
     } finally { setBezig(false); }
+  };
+
+  const bewerken = (t) => {
+    setType(t.type);
+    setNaam(t.naam || '');
+    setTelefoon(t.telefoon || '');
+    const cfg = typeConfig(t.type);
+    setAis(cfg?.extern ? (t.externeId || '') : '');
+    setBewerktId(t.id);
+    setFout(null);
+    document.querySelector('.beheer-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const annuleerBewerken = () => {
+    setNaam(''); setTelefoon(''); setAis(''); setBewerktId(null); setFout(null);
   };
 
   const verwijderen = async (id) => {
@@ -159,7 +175,12 @@ export default function BeheerBoten({ onSluiten }) {
               )}
               <input type="tel" placeholder={heeftExtern ? 'Telefoonnummer (optioneel)' : 'Telefoonnummer *'}
                      value={telefoon} onChange={e => setTelefoon(e.target.value)} />
-              <button type="submit" disabled={bezig}>+ Toevoegen</button>
+              <button type="submit" disabled={bezig}>{bewerktId ? '💾 Opslaan' : '+ Toevoegen'}</button>
+              {bewerktId && (
+                <button type="button" className="beheer-annuleer" onClick={annuleerBewerken}>
+                  Annuleren
+                </button>
+              )}
             </form>
 
             {/* Zoeken */}
@@ -206,6 +227,8 @@ export default function BeheerBoten({ onSluiten }) {
                     )}
                   </div>
                   <div className="beheer-acties">
+                    <button className="beheer-edit" title="Tracker bewerken"
+                            onClick={() => bewerken(t)}>✏️ Edit</button>
                     <button className="beheer-wis" title="Wis track-data (tracker blijft)"
                             onClick={() => wisData(t)}>🧹 Wis data</button>
                     <button className="beheer-del" title="Tracker verwijderen"

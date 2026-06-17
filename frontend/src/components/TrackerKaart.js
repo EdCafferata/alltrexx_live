@@ -351,6 +351,11 @@ export default function TrackerKaart() {
         )}
       </MapContainer>
 
+      {/* ── Logo linksboven ───────────────────────────────────────────────── */}
+      <a className="kaart-logo" href="https://alltrexx.live" title="Alltrexx Live">
+        <img src={`${process.env.PUBLIC_URL}/logo-alltrexx.png`} alt="Alltrexx Live" />
+      </a>
+
       {/* ── Deel-/vasthoud-chip (linksonder) ──────────────────────────────── */}
       <div className={`deel-chip ${vastgezet ? 'deel-chip-vast' : ''}`}>
         <span className="deel-coord" title="Huidige weergave">

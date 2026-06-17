@@ -67,7 +67,7 @@ export default function AccountMenu() {
               {gebruiker && (
                 <div className="beheer-sectie">
                   <div className="beheer-titel">🛠️ Beheer</div>
-                  <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🚢 Boten &amp; AIS beheren</button>
+                  <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🛰️ Alle data beheren</button>
                   <button className="account-knop">🔍 Data zoeken</button>
                   <button className="account-knop">📊 Rapportages</button>
                   <button className="account-knop">👥 Gebruikers</button>
