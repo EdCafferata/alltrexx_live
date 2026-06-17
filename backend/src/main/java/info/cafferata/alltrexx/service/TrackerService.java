@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -61,8 +62,33 @@ public class TrackerService {
         if (invoer.getTelefoon() != null)    doel.setTelefoon(invoer.getTelefoon());
         if (invoer.getOmschrijving() != null) doel.setOmschrijving(invoer.getOmschrijving());
         if (doel.getNaam() == null) doel.setNaam(invoer.getExterneId()); // fallback
+        // Geef elk toestel een eigen token (sleutel voor de mobiele app / abonnement).
+        if (doel.getToken() == null || doel.getToken().isBlank()) {
+            doel.setToken(UUID.randomUUID().toString());
+        }
         doel.setActief(true);
         return trackerRepo.save(doel);
+    }
+
+    /**
+     * Sla een positie op vanuit de mobiele app op basis van de toestel-token.
+     * Matcht de token op een actieve tracker; gooit een fout als de token onbekend of inactief is.
+     */
+    @Transactional
+    public Positie slaPositieOpViaToken(String token, double lat, double lon,
+                                        double snelheid, double koers, double hoogte) {
+        Tracker tracker = trackerRepo.findByToken(token)
+            .filter(Tracker::isActief)
+            .orElseThrow(() -> new IllegalArgumentException("Onbekende of inactieve token"));
+
+        Positie positie = Positie.builder()
+            .tracker(tracker)
+            .lat(lat).lon(lon)
+            .snelheid(snelheid).koers(koers).hoogte(hoogte)
+            .tijdstip(LocalDateTime.now())
+            .bron("MOBIEL")
+            .build();
+        return positieRepo.save(positie);
     }
 
     @Transactional

@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/kaart/**").permitAll()   // live kaart
                 .requestMatchers("/api/auth/**").permitAll()    // login/register
                 .requestMatchers("/api/admin/**").permitAll()   // beheer — key in controller (X-Admin-Key)
+                .requestMatchers("/api/mobiel/**").permitAll()  // mobiele app — per-toestel token in controller
                 .requestMatchers("/actuator/health").permitAll()
                 // ── Overige API vereist authenticatie ─────────────────────
                 .requestMatchers("/api/**").authenticated()

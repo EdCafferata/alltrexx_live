@@ -39,6 +39,11 @@ public class Tracker {
     /** Telefoonnummer — sleutel waarmee de mobiele app posities binnenstuurt (niet-boten). */
     private String telefoon;
 
+    /** Geheime token per toestel: de mobiele app stuurt posities met deze token.
+     *  Basis voor abonnement/activatie per toestel (samen met 'actief'). */
+    @Column(unique = true)
+    private String token;
+
     /** Omschrijving / extra info */
     private String omschrijving;
 

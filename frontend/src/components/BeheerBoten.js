@@ -32,6 +32,7 @@ export default function BeheerBoten({ onSluiten }) {
 
   // zoeken in de lijst (bootnaam, naam, MMSI, schipper, type)
   const [zoek, setZoek] = useState('');
+  const [gekopieerd, setGekopieerd] = useState(null); // welke token net gekopieerd is
 
   const laden = useCallback(async (key) => {
     setFout(null); setBezig(true);
@@ -79,6 +80,14 @@ export default function BeheerBoten({ onSluiten }) {
     try { await adminDeleteTracker(adminKey, id); await laden(adminKey); }
     catch { setFout('Verwijderen mislukt.'); }
     finally { setBezig(false); }
+  };
+
+  const kopieer = async (token) => {
+    try {
+      await navigator.clipboard.writeText(token);
+      setGekopieerd(token);
+      setTimeout(() => setGekopieerd(null), 1500);
+    } catch { /* clipboard niet beschikbaar — negeren */ }
   };
 
   const wisData = async (t) => {
@@ -163,7 +172,7 @@ export default function BeheerBoten({ onSluiten }) {
               )}
               {zichtbaar.map(t => (
                 <div className="beheer-item" key={t.id}>
-                  <div>
+                  <div className="beheer-info">
                     <strong>{t.bootnaam || t.naam}</strong>
                     <div className="beheer-sub">
                       {(TYPES.find(x => x.type === t.type) || {}).label || t.type}
@@ -173,6 +182,15 @@ export default function BeheerBoten({ onSluiten }) {
                         : `📞 ${t.telefoon || t.externeId || '—'}`}
                       {t.type === 'BOAT' && t.telefoon ? ` · 📞 ${t.telefoon}` : ''}
                     </div>
+                    {t.type !== 'BOAT' && t.token && (
+                      <div className="beheer-token" title="Token voor de mobiele app">
+                        🔑 <code>{t.token}</code>
+                        <button type="button" className="beheer-kopieer"
+                          onClick={() => kopieer(t.token)}>
+                          {gekopieerd === t.token ? '✓' : '📋'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="beheer-acties">
                     <button className="beheer-wis" title="Wis track-data (tracker blijft)"

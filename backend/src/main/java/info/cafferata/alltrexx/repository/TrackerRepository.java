@@ -11,4 +11,5 @@ public interface TrackerRepository extends JpaRepository<Tracker, Long> {
     List<Tracker> findByType(TrackerType type);
     List<Tracker> findByTypeAndActief(TrackerType type, boolean actief);
     Optional<Tracker> findByExterneId(String externeId);
+    Optional<Tracker> findByToken(String token);
 }
