@@ -40,3 +40,7 @@ export const adminDeleteTracker = (key, id) =>
 /** Alle posities (track-historie) van een tracker wissen; de boot blijft bestaan */
 export const adminWisPosities = (key, id) =>
   api.delete(`/admin/trackers/${id}/posities`, adminHeaders(key));
+
+/** Zoek ICAO 24-bit hex bij een vliegtuigregistratie (bv. PH-USN) */
+export const adminZoekIcao = (key, reg) =>
+  api.get('/admin/icao', { params: { reg }, headers: { 'X-Admin-Key': key } }).then(r => r.data);

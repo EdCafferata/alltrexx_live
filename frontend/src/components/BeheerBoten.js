@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { adminGetTrackers, adminSaveTracker, adminDeleteTracker, adminWisPosities } from '../services/api';
+import { adminGetTrackers, adminSaveTracker, adminDeleteTracker, adminWisPosities, adminZoekIcao } from '../services/api';
 import './BeheerBoten.css';
 
 const KEY_OPSLAG = 'alltrexx-admin-key';
@@ -31,6 +31,7 @@ export default function BeheerBoten({ onSluiten }) {
   const [naam, setNaam] = useState('');
   const [telefoon, setTelefoon] = useState('');
   const [ais, setAis] = useState(''); // extern volg-ID (MMSI / ICAO hex)
+  const [reg, setReg] = useState(''); // vliegtuigregistratie voor hex-opzoeken
   const typeCfg = typeConfig(type) || TYPES[0];
   const heeftExtern = !!typeCfg.extern; // BOAT/PLANE: extern ID; anders telefoon
 
@@ -55,6 +56,20 @@ export default function BeheerBoten({ onSluiten }) {
 
   useEffect(() => { if (adminKey) laden(adminKey); /* eslint-disable-next-line */ }, []);
 
+  const zoekHex = async () => {
+    if (!reg.trim()) return;
+    setFout(null); setBezig(true);
+    try {
+      const d = await adminZoekIcao(adminKey, reg.trim());
+      setAis(d.hex);
+      if (!naam.trim()) setNaam(reg.trim().toUpperCase());
+    } catch (e) {
+      setFout(e?.response?.status === 404
+        ? `Geen ICAO-hex gevonden voor ${reg.trim().toUpperCase()}.`
+        : 'Opzoeken mislukt.');
+    } finally { setBezig(false); }
+  };
+
   const toevoegen = async (e) => {
     e.preventDefault();
     // Extern getrackt (boot=MMSI, vliegtuig=ICAO hex) → match op extern ID;
@@ -72,7 +87,7 @@ export default function BeheerBoten({ onSluiten }) {
         externeId: heeftExtern ? ais.trim().toLowerCase() : telefoon.trim(),
         schipper: heeftExtern ? naam.trim() : null,
       });
-      setNaam(''); setTelefoon(''); setAis('');
+      setNaam(''); setTelefoon(''); setAis(''); setReg('');
       await laden(adminKey);
     } catch (e) {
       setFout(e?.response?.status === 401 ? 'Ongeldige admin-key.' : 'Opslaan mislukt.');
@@ -145,6 +160,15 @@ export default function BeheerBoten({ onSluiten }) {
               </select>
               <input placeholder="Naam *" value={naam}
                      onChange={e => setNaam(e.target.value)} />
+              {type === 'PLANE' && (
+                <div className="beheer-icao-zoek">
+                  <input placeholder="Registratie (bv. PH-USN)" value={reg}
+                         onChange={e => setReg(e.target.value)} />
+                  <button type="button" onClick={zoekHex} disabled={bezig || !reg.trim()}>
+                    🔎 Zoek hex
+                  </button>
+                </div>
+              )}
               {heeftExtern && (
                 <input placeholder={`${typeCfg.extern} *`} value={ais}
                        onChange={e => setAis(e.target.value)} />

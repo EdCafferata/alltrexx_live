@@ -46,6 +46,10 @@
 }
 .beheer-type option { color: #111; }
 
+.beheer-icao-zoek { display: flex; gap: 8px; }
+.beheer-icao-zoek input { flex: 1; }
+.beheer-icao-zoek button { white-space: nowrap; }
+
 .beheer-modal button {
   background: #0071e3; color: #fff; border: none;
   border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 600;
