@@ -3,10 +3,11 @@
 Twee lagen, beide op de NAS (overleven container/volume-wipes):
 
 ## 1. Volledige DB-backup (automatisch) — issue #5
-Een los `backup`-containertje in `docker-compose.yml` draait elke 24 uur
+Een los `backup`-containertje in `docker-compose.yml` draait **elk uur**
 `mysqldump` van de hele `alltrexx`-database en schrijft een gzip-dump naar
-`./db-backups/` op de NAS. De laatste **14** dumps worden bewaard, oudere
-worden automatisch opgeruimd.
+`./db-backups/` op de NAS. De laatste **168** dumps (= 7 dagen) worden bewaard,
+oudere worden automatisch opgeruimd. Zo blijft ALLE data bewaard — trackers
+én de volledige positie-/track-historie — met max ~1 uur verlies bij een wipe.
 
 - Locatie op de NAS: `/volume1/Backup-Ed/alltrexx-nas/db-backups/alltrexx-JJJJMMDD-UUMMSS.sql.gz`
 - Bevat **alles**: trackers én positie-historie.

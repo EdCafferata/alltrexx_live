@@ -91,9 +91,10 @@ services:
     ports:
       - "8080:8080"                       # DSM reverse proxy wijst hierheen
 
-  # ── Dagelijkse DB-backup: mysqldump → ./db-backups op de NAS (laatste 14) ────
-  # Draait als root (alleen file-write, geen chown) zodat de Synology bind-mount lukt.
-  # Overleeft container/volume-wipes want de dumps staan op de NAS-filesystem.
+  # ── DB-backup elk uur: mysqldump → ./db-backups op de NAS (laatste 168 = 7 dagen) ─
+  # Volledige DB (ALLE data: trackers + positie-historie). Draait als root (alleen
+  # file-write, geen chown) zodat de Synology bind-mount lukt. Overleeft
+  # container/volume-wipes want de dumps staan op de NAS-filesystem.
   backup:
     image: mysql:8.0
     container_name: alltrexx-backup
@@ -119,8 +120,8 @@ services:
           else
             echo "[backup] $$TS MISLUKT"; rm -f /backups/alltrexx-$$TS.sql.gz
           fi
-          ls -1t /backups/alltrexx-*.sql.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
-          sleep 86400
+          ls -1t /backups/alltrexx-*.sql.gz 2>/dev/null | tail -n +169 | xargs -r rm -f
+          sleep 3600
         done
 
 volumes:
