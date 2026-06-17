@@ -32,11 +32,11 @@ services:
       MYSQL_USER:          ${DB_USERNAME}
       MYSQL_PASSWORD:      ${DB_PASSWORD}
     volumes:
-      # Host bind-mount i.p.v. named volume: de DB-data leeft op de NAS-filesystem
-      # (./db-data = naast deze compose) en OVERLEEFT een volledige project-recreate.
-      # Named volumes werden bij project-delete door Container Manager weggegooid → 74
-      # boten kwijt. Backup + herstel: data/boten-backup.json + data/restore-boten.sh.
-      - ./db-data:/var/lib/mysql
+      # Named volume (bewezen werkend). Bind-mount ./db-data bleek op Synology een
+      # permissie-val: de mysql-container (uid 999) mag de gedeelde map niet beschrijven
+      # → init faalt ("verwijder de bestanden…" die je in File Station niet ziet).
+      # Durabiliteit regelen we via off-NAS backup (issue #5), niet via bind-mount.
+      - alltrexx-db-fresh:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -90,3 +90,6 @@ services:
     command: ["java", "-jar", "/app/alltrexx-live-1.0.0.jar"]
     ports:
       - "8080:8080"                       # DSM reverse proxy wijst hierheen
+
+volumes:
+  alltrexx-db-fresh:
