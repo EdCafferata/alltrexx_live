@@ -45,8 +45,13 @@ export default function AccountMenu() {
 
   return (
     <>
-      <button className="logo-badge" onClick={() => setOpen(!open)} title="Account">
-        ⚓ Alltrexx {gebruiker && <span className="logo-ingelogd">●</span>}
+      <button className="login-knop" onClick={() => setOpen(!open)}
+              title={gebruiker ? 'Account' : 'Inloggen met Apple'}
+              aria-label={gebruiker ? 'Account' : 'Inloggen met Apple'}>
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+          <path fill="#111" d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.09-2.01-3.76-2.04-1.6-.16-3.12.94-3.93.94-.81 0-2.06-.92-3.39-.89-1.74.03-3.35 1.01-4.25 2.57-1.81 3.14-.46 7.79 1.3 10.34.86 1.25 1.89 2.65 3.23 2.6 1.3-.05 1.79-.84 3.36-.84 1.57 0 2.01.84 3.39.81 1.4-.03 2.29-1.27 3.14-2.53.99-1.45 1.4-2.86 1.42-2.93-.03-.01-2.72-1.04-2.75-4.13zM14.6 4.6c.71-.86 1.19-2.06 1.06-3.25-1.02.04-2.26.68-2.99 1.54-.66.76-1.23 1.98-1.08 3.15 1.14.09 2.3-.58 3.01-1.44z"/>
+        </svg>
+        {gebruiker && <span className="login-ingelogd" />}
       </button>
 
       {open && (

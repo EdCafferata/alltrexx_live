@@ -1,15 +1,38 @@
-/* Logo-knop is gestyled in App.css (.logo-badge) */
-.logo-ingelogd {
-  color: #2E7D32;
-  font-size: 12px;
-  vertical-align: middle;
-  margin-left: 4px;
+/* Ronde login-knop (Apple-logo), links onder het kaart-logo, vóór de FAB-knoppen.
+   Zelfde glas-stijl als de FAB-type-knoppen, uitgelijnd op left:16. */
+.login-knop {
+  position: absolute;
+  top: calc(78px + env(safe-area-inset-top));
+  left: 16px;
+  z-index: 1002;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.65);
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9), rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.15));
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.22), inset 0 1px 1px rgba(255,255,255,0.95);
+  transition: transform 0.15s ease;
+}
+.login-knop:hover { transform: scale(1.06); }
+.login-ingelogd {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #2E7D32;
+  border: 2px solid rgba(255,255,255,0.9);
 }
 
 /* ── Account paneel ─────────────────────────────────────── */
 .account-paneel {
   position: absolute;
-  top: 72px;
+  top: calc(142px + env(safe-area-inset-top));
   left: 16px;
   width: 320px;
   max-height: calc(100vh - 100px);
