@@ -470,7 +470,7 @@
 
 .deel-chip {
   position: absolute;
-  bottom: calc(46px + env(safe-area-inset-bottom));
+  bottom: calc(72px + env(safe-area-inset-bottom));
   left: 16px;
   z-index: 1001;
   display: inline-flex;
@@ -512,7 +512,7 @@
 
 .status-balk {
   position: absolute;
-  bottom: calc(46px + env(safe-area-inset-bottom));
+  bottom: calc(72px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.28));
