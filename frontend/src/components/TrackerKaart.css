@@ -485,7 +485,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  opacity: 0.5;
+  opacity: 0.25;
   transition: opacity 0.2s;
 }
 .deel-chip:hover { opacity: 1; }
@@ -538,6 +538,12 @@
   color: #2E7D32;
   font-size: 12px;
   animation: knipoog 2s ease-in-out infinite;
+}
+
+/* Telefoon: centrale statusbalk weglaten (te veel onderaan). De deel-chip links
+   blijft; de per-type-aantallen staan al op de FAB-knoppen. */
+@media (max-width: 600px) {
+  .status-balk { display: none; }
 }
 
 @keyframes knipoog {

@@ -28,7 +28,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  opacity: 0.5;                /* 50% doorzichtig — valt veel minder op */
+  opacity: 0.25;               /* 25% doorzichtig — subtiel, in lijn met de site */
   transition: opacity 0.2s;
 }
 .bron-chip:hover { opacity: 1; }  /* bij hover weer goed leesbaar */
@@ -40,8 +40,16 @@
 .bron-naam { font-weight: 700; }
 .bron-url  { color: #8ad0ff; }
 .bron-tijd { color: #9fb2cf; }
+.bron-tijd-kort { color: #9fb2cf; display: none; }  /* alleen op telefoon */
 
 @media (max-width: 640px) {
   .bron-chip { font-size: 11px; padding: 6px 12px; gap: 7px; }
   .bron-url { display: none; }   /* op smal scherm alleen naam + tijd */
+}
+
+/* Telefoon: minimaal — geen icoon/URL/lange tijd, alleen label + uur:minuut. */
+@media (max-width: 600px) {
+  .bron-icon { display: none; }
+  .bron-tijd { display: none; }
+  .bron-tijd-kort { display: inline; }
 }

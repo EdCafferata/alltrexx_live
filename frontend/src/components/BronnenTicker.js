@@ -17,6 +17,14 @@ function tijdLabel(iso) {
   });
 }
 
+// Korte tijd voor telefoon: alleen uur:minuut (geen dag/maand).
+function tijdKort(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+}
+
 // Twee chips die over het scherm zweven, met de bron-URL en laatste-update-tijd.
 export default function BronnenTicker() {
   const [status, setStatus] = useState({});
@@ -45,9 +53,11 @@ export default function BronnenTicker() {
           <a key={b.code} href={b.url} target="_blank" rel="noopener noreferrer"
              className="bron-chip">
             <span className="bron-dot" />
-            <span className="bron-naam">📡 {b.label}</span>
+            <span className="bron-icon" aria-hidden="true">📡</span>
+            <span className="bron-naam">{b.label}</span>
             <span className="bron-url">{b.url.replace(/^https?:\/\//, '')}</span>
             <span className="bron-tijd">{tijdLabel(s?.laatste)}</span>
+            <span className="bron-tijd-kort">{tijdKort(s?.laatste)}</span>
           </a>
         );
       })}
