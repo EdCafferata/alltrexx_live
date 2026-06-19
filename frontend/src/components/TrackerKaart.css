@@ -510,6 +510,11 @@
   .deel-coord { display: none; }
 }
 
+/* Telefoon: vasthoud-/deel-chip gecentreerd i.p.v. linksonder. */
+@media (max-width: 600px) {
+  .deel-chip { left: 50%; right: auto; transform: translateX(-50%); }
+}
+
 .status-balk {
   position: absolute;
   bottom: calc(72px + env(safe-area-inset-bottom));
