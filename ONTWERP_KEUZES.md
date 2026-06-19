@@ -1,7 +1,10 @@
 # Alltrexx Live — Ontwerpkeuzes & opties
 
 Logboek van alle ontwerp- en techniekkeuzes, ook de keuzes die je niet direct in de UI ziet.
-Laatst bijgewerkt: 10 juni 2026.
+Laatst bijgewerkt: 17 juni 2026.
+
+> Onderaan staat het hoofdstuk **"Sessie 15–17 juni 2026"** met alle nieuwe keuzes
+> (databronnen, beheer, mobiel, UI-aanpassingen, deploy & backup).
 
 ## Visie
 
@@ -176,6 +179,91 @@ API-token geconfigureerd via `frontend/.env` (zie `frontend/.env.example`; echte
 
 ## Nog te doen
 
-- [ ] alltrexx_mobile: eerste-gebruik scherm met dezelfde vijf type-opties
-- [ ] Apparaten koppelen (registratie/koppel-flow voor trackers)
+- [ ] alltrexx_mobile: eerste-gebruik scherm met dezelfde type-opties
+- [ ] Apparaten koppelen via de toestel-token (mobiele app → POST /api/mobiel/positie)
+- [ ] Abonnement per toestel (gate op `actief`/token)
 - [ ] Routes/Trackers-functies (oude nav-links) terugbrengen in icons of lagen-paneel
+- [ ] Treinen/auto's: databron onderzoeken (issue #9)
+
+---
+
+## Sessie 15–17 juni 2026 — databronnen, beheer, mobiel, UI & deploy
+
+### Databronnen per type (de "AIS-achtige" pollers)
+Elke externe bron is een eigen kleine scheduler (elke 15 min), matcht onze trackers
+op hun **externe sleutel** en slaat posities op. Bewust gescheiden bestanden.
+
+| Type | Bron | Sleutel (externeId) | Scheduler | bron-tag |
+|---|---|---|---|---|
+| ⛵ Boot | **AISHub** (gratis voor data-aanleveraars) | MMSI | `AisHubScheduler` | `AISHUB` |
+| ✈️ Vliegtuig | **airplanes.live** (gratis, geen key) | ICAO 24-bit hex | `VliegtuigScheduler` | `ADSB` |
+| 🚶🚴🚗 | **mobiele app** (toestel-token) | telefoonnummer | `MobielService` | `MOBIEL` |
+| ⛵ (2e) | Kpler/MarineTraffic | MMSI | `KplerScheduler` (wacht op grant) | `KPLER` |
+
+- **AISHub-username** = station-handle (geen e-mail): `AH_2596_23A5E304` in `.env`
+  (`AISHUB_USERNAME`). Bbox NL. **Limiet: max 1 request/min** → niet handmatig pingen
+  terwijl de container draait. Respons ~2,6 MB (9000+ schepen) → zie WebClient-buffer.
+- **ADS-B (airplanes.live)**: `GET /v2/point/{lat}/{lon}/{radius_nm}`. Punt 52.3/5.3 + 250 nm.
+  Snelheid knopen→km/h, hoogte voet→m, naam uit registratie/callsign/omschrijving.
+  ICAO-hex wordt **lowercase** opgeslagen (poller matcht op lowercase).
+- **Registratie→ICAO-hex opzoeken** via **hexdb.io** (`/reg-hex?reg=PH-USN`), proxy in
+  `VliegtuigService` + endpoint `GET /api/admin/vliegtuig/icao`. In beheer: "🔎 Zoek hex".
+
+### Beheerscherm (nu "🛰️ Alle data beheren", niet alleen boten)
+- Eén scherm voor **alle types** (type-keuze in het toevoeg-formulier). `TRAIN` ook
+  in de backend-enum gezet (ontbrak).
+- Per tracker: **Naam + Telefoonnummer**. Extern-getrackte types (Boot=MMSI,
+  Vliegtuig=ICAO hex) hebben een extra ID-veld; mobiele types matchen op telefoon.
+- **Token per toestel** (UUID, auto bij aanmaken) — basis voor abonnement per toestel.
+  Wordt in beheer getoond met kopieer-knop (alleen mobiele types).
+- Knoppen per rij: **✏️ Edit** (laadt tracker in formulier, upsert op externeId),
+  **🧹 Wis data** (wist alleen de track-historie), **🗑 Verwijderen**.
+- **Zoekveld** filtert de lijst (naam/ID/telefoon/type). Admin-key in header `X-Admin-Key`
+  (herbruikbare `AdminKey`-component).
+- Vliegtuig-specifieke UI staat los in `VliegtuigZoek.js`/`.css` (modulaire voorkeur).
+
+### Mobiele koppeling (gekozen: token per toestel — optie 2)
+- `POST /api/mobiel/positie` `{token, lat, lon, snelheid?, koers?, hoogte?}` → matcht de
+  token op een **actieve** tracker, slaat positie op (bron `MOBIEL`). Onbekend/inactief
+  → 403 (toestel niet (meer) geabonneerd). Geen JWT; token is de sleutel. `MobielService`
+  + `MobielController`, permit in `SecurityConfig`. Net als de BVK/RHN-apps.
+
+### Kaart-UI nieuw/aangepast
+- **Standaard-start**: Boot-kaart, alleen Boten zichtbaar + route aan. Deel-link
+  (`?lat&lon&z&laag&types`) of vastgehouden weergave overschrijven dit.
+- **Vasthouden + Deel-chip** (linksonder; op telefoon gecentreerd): 📌 bewaart center+zoom
+  in de browser; 🔗 kopieert een deel-link die exact dezelfde weergave opent.
+- **Zoekveld in elk FAB-menu** (filtert trackers op naam/MMSI/ICAO).
+- **Route-periode** = vrij getal × eenheid (uur/dag/week/maand/jaar) i.p.v. vaste 24u.
+- **Logo** (ALLTREXX LIVE) rond linksboven + **favicon/apple-touch-icon** in de URL-balk.
+- **Ronde Apple-login-knop** links onder het logo (vervangt de oude "⚓ Alltrexx"-tekstknop
+  die over het logo viel); uitgelijnd met logo en FAB-knoppen (alle 56px, left:16).
+- **Kaartlagen-knop** rechtsboven 2× groter (100px), icoon vult ~90%.
+- **Bron-ticker** (AISHub/Kpler) staat nu **vast** gecentreerd bovenin, **25% doorzichtig**
+  (net als de deel-chip); op telefoon minimaal: geen icoon/URL, alleen bron + uur:minuut.
+- **Telefoon-layout**: centrale statusbalk verborgen, deel-chip gecentreerd.
+- **iPad/safe-area**: `viewport-fit=cover` + `env(safe-area-inset-*)`; onderste balken
+  op `calc(72px + safe-area)` zodat ze boven de home-indicator staan.
+
+### Backend modulariteit (kleine losse delen)
+`AdminKey` (gedeelde key-check), `VliegtuigService`/`VliegtuigController`,
+`MobielService`/`MobielController`, `AisHubScheduler`, `VliegtuigScheduler`,
+`KplerScheduler`, `MarineTrafficScheduler`. `TrackerService` gaat puur over
+trackers/posities. `AlltrexxApplication.main` zet `TimeZone.setDefault("Europe/Amsterdam")`.
+
+### Deploy & infra (Synology — hard geleerd)
+- **Eén app-container** (Spring Boot serveert site + API op 8080) + `database` + `backup`.
+  Reverse proxy alltrexx.live:443 → localhost:8080. Geen aparte frontend-container meer.
+- **Jar + frontend = bind-mounts** van vooraf op de Mac gebouwde artefacten → een
+  **restart** pakt nieuwe jar/build; **compose-wijzigingen (env/volumes/extra_hosts)
+  vereisen een Build/recreate** (Container Manager soms gecachet → controleer de YAML).
+- **DB = named volume `alltrexx-db-fresh`.** Host bind-mount bleek een Synology-
+  permissieval (mysql uid 999 mag de share niet beschrijven). **Build, geen project-delete**
+  (delete = volume weg = data weg).
+- **Container-DNS werkt NIET** op deze NAS: alle externe hosts staan hard in `extra_hosts`
+  (`data.aishub.net`, `hexdb.io`, `api.airplanes.live`). Egress zelf werkt wel.
+- **WebClient-buffer**: `SPRING_CODEC_MAX_IN_MEMORY_SIZE=16MB` (AISHub-respons > 256 KB
+  default → decode faalde met "ophalen mislukt: 200 OK").
+- **Backup**: los `backup`-containertje doet **elk uur** `mysqldump` → `./db-backups`
+  (laatste 168 = 7 dagen). Volledige data. Zie `data/BACKUP.md`. Snelle trackers-restore:
+  `data/boten-backup.json` + `data/restore-boten.sh`.
