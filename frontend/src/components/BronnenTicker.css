@@ -38,6 +38,7 @@
   background: #34d399; box-shadow: 0 0 8px #34d399;
 }
 .bron-naam { font-weight: 700; }
+.bron-naam-kort { font-weight: 700; display: none; }  /* korte naam, alleen op telefoon */
 .bron-url  { color: #8ad0ff; }
 .bron-tijd { color: #9fb2cf; }
 .bron-tijd-kort { color: #9fb2cf; display: none; }  /* alleen op telefoon */
@@ -47,9 +48,11 @@
   .bron-url { display: none; }   /* op smal scherm alleen naam + tijd */
 }
 
-/* Telefoon: minimaal — geen icoon/URL/lange tijd, alleen label + uur:minuut. */
+/* Telefoon: minimaal — geen icoon/URL/lange tijd, alleen korte naam + uur:minuut. */
 @media (max-width: 600px) {
   .bron-icon { display: none; }
   .bron-tijd { display: none; }
   .bron-tijd-kort { display: inline; }
+  .bron-naam { display: none; }
+  .bron-naam-kort { display: inline; }
 }

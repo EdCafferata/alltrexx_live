@@ -4,11 +4,11 @@ import './BronnenTicker.css';
 
 // Vaste bronnen die we tonen (ook als er nog geen data is)
 const BRONNEN = [
-  { code: 'AISHUB', label: 'AISHub', url: 'https://www.aishub.net' },
-  { code: 'ADSB',   label: 'ADS-B',  url: 'https://airplanes.live' },
+  { code: 'AISHUB', label: 'AISHub', kort: 'AIS',   url: 'https://www.aishub.net' },
+  { code: 'ADSB',   label: 'ADS-B',  kort: 'ADS-B', url: 'https://airplanes.live' },
   // Kpler tijdelijk verborgen: wacht nog op client-grant. Terugzetten = deze regel
   // uit-commentariëren zodra de KplerScheduler data levert (bron-code 'KPLER').
-  // { code: 'KPLER', label: 'Kpler', url: 'https://developers.kpler.com' },
+  // { code: 'KPLER', label: 'Kpler', kort: 'Kpler', url: 'https://developers.kpler.com' },
 ];
 
 function tijdLabel(iso) {
@@ -58,6 +58,7 @@ export default function BronnenTicker() {
             <span className="bron-dot" />
             <span className="bron-icon" aria-hidden="true">📡</span>
             <span className="bron-naam">{b.label}</span>
+            <span className="bron-naam-kort">{b.kort || b.label}</span>
             <span className="bron-url">{b.url.replace(/^https?:\/\//, '')}</span>
             <span className="bron-tijd">{tijdLabel(s?.laatste)}</span>
             <span className="bron-tijd-kort">{tijdKort(s?.laatste)}</span>
