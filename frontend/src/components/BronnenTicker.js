@@ -4,8 +4,11 @@ import './BronnenTicker.css';
 
 // Vaste bronnen die we tonen (ook als er nog geen data is)
 const BRONNEN = [
-  { code: 'AISHUB', label: 'AISHub',  url: 'https://www.aishub.net' },
-  { code: 'KPLER',  label: 'Kpler',   url: 'https://developers.kpler.com' },
+  { code: 'AISHUB', label: 'AISHub', url: 'https://www.aishub.net' },
+  { code: 'ADSB',   label: 'ADS-B',  url: 'https://airplanes.live' },
+  // Kpler tijdelijk verborgen: wacht nog op client-grant. Terugzetten = deze regel
+  // uit-commentariëren zodra de KplerScheduler data levert (bron-code 'KPLER').
+  // { code: 'KPLER', label: 'Kpler', url: 'https://developers.kpler.com' },
 ];
 
 function tijdLabel(iso) {
