@@ -8,9 +8,13 @@ fietsen 🚴, auto's 🚗, vliegtuigen ✈️, personen 🚶 en treinen 🚆.
   en een deelbare/vast-te-houden weergave (`?lat&lon&z&laag&types`).
 - **Databronnen per type** (elke 15 min): AIS via **AISHub** (boten, op MMSI), ADS-B via
   **airplanes.live** (vliegtuigen, op ICAO-hex), en de **mobiele app** (op toestel-token).
-- **Beheer** ("🛰️ Alle data beheren"): trackers van elk type toevoegen/bewerken/wissen,
-  registratie→ICAO-hex opzoeken (hexdb.io), token per toestel.
-- **Privacy**: login via Apple/CloudKit; geen persoonsgegevens op de server.
+- **Accounts (Free/Pro)**: login via Apple/CloudKit. **Free** = eigen voertuig & data +
+  📖 logboek (type + periode dag/week/maand/alles); **Pro** = alle beheer-/kijk-opties.
+  Gratis inlogsleutel (token) aan te maken voor de mobiele app.
+- **Beheer** (Pro): trackers van elk type toevoegen/bewerken/wissen, registratie→ICAO-hex
+  opzoeken (hexdb.io), token per toestel, en 👥 gebruikers (Pro-vlag) beheren.
+- **Privacy**: trackdata blijft in Apple CloudKit. De server bewaart per gebruiker alleen een
+  anoniem account-ID, een naam-label en de abonnementsstatus (FREE/PRO) — geen e-mail of trackdata.
 
 ## Stack
 Spring Boot 3.2 · Java 21 · MySQL 8 · React 18 · Leaflet · Docker (Synology Container Manager).

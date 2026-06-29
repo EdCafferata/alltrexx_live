@@ -36,15 +36,16 @@ meerdere bronnen per type (AIS, ADS-B, mobiele app).
 ## Structuur (modulair — kleine losse bestanden)
 ```
 backend/  Spring Boot
-  controller/  KaartController, TrackerController, AdminController,
-               VliegtuigController, MobielController
+  controller/  KaartController, TrackerController, AdminController, VliegtuigController,
+               MobielController, SleutelController, GebruikerController
   scheduler/   AisHubScheduler, VliegtuigScheduler, KplerScheduler, MarineTrafficScheduler
-  service/     TrackerService, VliegtuigService, MobielService
+  service/     TrackerService, VliegtuigService, MobielService, SleutelService, GebruikerService
   security/    AdminKey (herbruikbare X-Admin-Key-check)
-  model/       Tracker (+ telefoon, token), Positie, TrackerType
+  model/       Tracker (+ telefoon, token, abonnement), Positie, TrackerType, Gebruiker
+  repository/  TrackerRepository, PositieRepository, GebruikerRepository
 frontend/ React
-  components/  TrackerKaart(.js/.css), BeheerBoten, VliegtuigZoek, BronnenTicker,
-               AccountMenu
+  components/  TrackerKaart(.js/.css), BeheerBoten, BeheerGebruikers, VliegtuigZoek,
+               BronnenTicker, Logboek, AccountMenu
   services/    api.js, cloudkit.js
   public/      index.html, logo-alltrexx.png, favicon.png, apple-touch-icon.png
 data/     boten-backup.json, restore-boten.sh, BACKUP.md
@@ -59,9 +60,29 @@ docker-compose.yml · database/init.sql
 | GET/POST | `/api/admin/trackers` · DELETE `/{id}` · DELETE `/{id}/posities` | X-Admin-Key |
 | GET | `/api/admin/vliegtuig/icao?reg=` | X-Admin-Key |
 | POST | `/api/mobiel/positie` `{token,lat,lon,snelheid?,koers?,hoogte?}` | toestel-token |
+| POST | `/api/sleutel/gratis` `{naam?,type?}` → tracker met UUID-token (FREE) | nee |
+| POST | `/api/gebruikers/aanmelden` `{externeId,naam?,beheerder?}` (upsert) | nee |
+| GET | `/api/gebruikers` · PUT `/{id}/abonnement` `{abonnement}` · DELETE `/{id}` | X-Admin-Key |
 | POST | `/api/trackers/positie` | JWT (legacy) |
 
 TrackerType: `BOAT` · `BIKE` · `CAR` · `PLANE` · `PERSON` · `TRAIN`
+
+## Accounts, sleutel & abonnement (Free/Pro) — 29 juni 2026
+- **Login** = CloudKit (Apple). Bij login meldt de frontend de gebruiker aan
+  (`POST /api/gebruikers/aanmelden`) → minimaal serverrecord: opaak CloudKit-`externeId`
+  + optioneel naam-label + `abonnement` (FREE/PRO) + `beheerder` + tijdstippen. Géén e-mail
+  of trackdata op de server (trackdata blijft in CloudKit).
+- **Free**: eigen voertuig & data + 📖 Logboek (type-keuze + periode dag/week/maand/alles;
+  vliegtuig toont hoogte/koers). **Pro**: alle beheer-/kijk-opties (BeheerBoten, Gebruikers, …).
+  Frontend gate: `isPro = abonnement==='PRO' || isBeheerder`. Echte beheer-API blijft
+  X-Admin-Key-beveiligd.
+- **CloudKit deelt het e-mailadres meestal NIET** → automatische beheerder→PRO-herkenning
+  (`BEHEERDER_EMAIL` in cloudkit.js) vuurt vaak niet. Daarom: **`PRO_ACCOUNT_IDS`** (env,
+  komma-gescheiden opake CloudKit-ID's) → die accounts krijgen bij aanmelden altijd
+  PRO + beheerder. Staat in de NAS `.env` (niet in de repo), overleeft een verse DB.
+  Pro ook handmatig te (de)activeren via het 👥 Gebruikers-scherm.
+- 🔑 **Gratis sleutel** = `POST /api/sleutel/gratis` maakt een tracker met UUID-token; de
+  mobiele app stuurt posities met die token (`/api/mobiel/positie`). Pro-sleutel = binnenkort.
 
 ## Bouwen & deployen (zie ook DEPLOY_NAS.md, BOUW_HANDLEIDING.md)
 ```bash
@@ -84,13 +105,13 @@ rsync -a --delete frontend/build/ /Volumes/Backup-Ed/alltrexx-nas/frontend/build
 - **NAS:** `192.168.1.179` (KROON-9-NAS, LAN). SSH-user **`Ed`** (administrators).
   Passwordless SSH-sleutel staat geïnstalleerd: `ssh -i ~/.ssh/id_ed25519 Ed@192.168.1.179`.
 - **Docker** zit op `/usr/local/bin/docker` (niet in non-interactief PATH) en `docker.sock`
-  is `root:root` → **docker vereist `sudo`** (NOPASSWD is niet ingesteld). Docker-commando's
-  dus zelf draaien in Terminal: `ssh -t Ed@192.168.1.179 'sudo /usr/local/bin/docker …'`.
-- **Container Manager-project heet NIET `alltrexx-live`** (CM gebruikt een eigen projectnaam).
-  Een `docker compose up` met de compose-`name:` botst daarom ("name already in use").
-  Recreate via CLI met de gedetecteerde projectnaam: `docker compose -p <CM-naam> up -d`,
-  óf via de Container Manager GUI (Project > Build). Helper-script op de NAS:
-  `~/alltrexx-rebuild.sh` (detecteert de projectnaam zelf) → `sudo sh ~/alltrexx-rebuild.sh`.
+  is `root:root` → docker vereist `sudo`. **Passwordless docker-sudo werkt** (NOPASSWD), maar
+  **alleen voor `sudo /usr/local/bin/docker …` zelf**, niet voor `sudo sh script`.
+- **Container Manager-project heet `alltrexx`** (NIET `alltrexx-live` van de compose-`name:`;
+  een kale `docker compose up` botst dus). Restart (jar/frontend bind-mount):
+  `ssh -i ~/.ssh/id_ed25519 Ed@192.168.1.179 'sudo /usr/local/bin/docker restart alltrexx-app'`.
+  **Recreate** (compose-/env-wijziging), DB blijft draaien:
+  `ssh … 'cd /volume1/Backup-Ed/alltrexx-nas && sudo /usr/local/bin/docker compose -p alltrexx up -d --remove-orphans'`.
 
 ## Backup (issue #5) — ACTIEF sinds 29 juni 2026
 - `backup`-container draait: elk uur `mysqldump` → `./db-backups` (laatste 168 = 7 dagen).

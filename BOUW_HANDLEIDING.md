@@ -36,6 +36,7 @@ vereisen een Build/recreate. Zie `DEPLOY_NAS.md`.
 | `DB_ROOT_PASSWORD` / `DB_USERNAME` / `DB_PASSWORD` | MySQL |
 | `JWT_SECRET` | JWT (legacy positie-endpoint) |
 | `ADMIN_API_KEY` | beheer-key (header `X-Admin-Key`) |
+| `PRO_ACCOUNT_IDS` | vaste PRO-accounts: opake CloudKit-ID's, komma-gescheiden (leeg = geen) |
 | `AISHUB_USERNAME` | AISHub station-handle (boten/AIS) |
 | `KPLER_TOKEN` | Kpler (tweede AIS-bron, wacht op grant) |
 | `MARINETRAFFIC_API_KEY` | MarineTraffic (legacy/uit) |

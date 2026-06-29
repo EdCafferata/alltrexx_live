@@ -1,10 +1,10 @@
 # Alltrexx Live — Ontwerpkeuzes & opties
 
 Logboek van alle ontwerp- en techniekkeuzes, ook de keuzes die je niet direct in de UI ziet.
-Laatst bijgewerkt: 17 juni 2026.
+Laatst bijgewerkt: 29 juni 2026.
 
-> Onderaan staat het hoofdstuk **"Sessie 15–17 juni 2026"** met alle nieuwe keuzes
-> (databronnen, beheer, mobiel, UI-aanpassingen, deploy & backup).
+> Onderaan staan de hoofdstukken **"Sessie 15–17 juni 2026"** en **"Sessie 29 juni 2026"**
+> (databronnen, beheer, mobiel, UI, deploy, backup, accounts & Free/Pro).
 
 ## Visie
 
@@ -267,3 +267,47 @@ trackers/posities. `AlltrexxApplication.main` zet `TimeZone.setDefault("Europe/A
 - **Backup**: los `backup`-containertje doet **elk uur** `mysqldump` → `./db-backups`
   (laatste 168 = 7 dagen). Volledige data. Zie `data/BACKUP.md`. Snelle trackers-restore:
   `data/boten-backup.json` + `data/restore-boten.sh`.
+
+## Sessie 29 juni 2026 — accounts, Free/Pro, logboek, sleutel
+
+### Inlogsleutel (gratis)
+- Na Apple-login kan de gebruiker een **gratis inlogsleutel** aanmaken: `POST /api/sleutel/gratis`
+  maakt een tracker met UUID-`token` (abonnement FREE). De mobiele app stuurt posities met
+  die token (`/api/mobiel/positie`). Token wordt lokaal bewaard (`localStorage`).
+- **Pro-sleutel = "binnenkort"** (disabled knop). Gekozen voor self-service via de backend
+  i.p.v. client-side, zodat de sleutel echt bruikbaar is voor de app.
+
+### Logboek (Free)
+- 📖 **Logboeken**-knop (verving de oude "🛠️ Beheer"-titel) opent inline het logboek:
+  **type-dropdown** (incl. "🌐 Alle types") boven **periodeknoppen** (Dag/Week/Maand/Alles),
+  daaronder de eigen-data lijst (tijd · positie · snelheid). Bij **Vliegtuig** toont elke
+  regel **hoogte + koers** i.p.v. snelheid. Free = alleen eigen voertuig (`getRoute` op de
+  eigen sleutel-tracker).
+
+### Accounts & abonnement (Free/Pro)
+- **Minimaal serverrecord** (privacy-by-design behouden): `Gebruiker` = opaak CloudKit-`externeId`
+  + optioneel naam-label + `abonnement` (FREE/PRO) + `beheerder` + tijdstippen. **Geen e-mail,
+  geen trackdata** op de server. Bewuste keuze i.p.v. een volledig profiel; privacytekst
+  in de UI eerlijk aangepast.
+- Bij login meldt de frontend aan (`POST /api/gebruikers/aanmelden`, upsert).
+- **Gating**: Free ziet alleen het Logboek; **Pro** (of beheerder) ziet alle beheer-/kijk-opties.
+  Frontend-gate is UI; de echte beheer-API blijft **X-Admin-Key**-beveiligd.
+- **Beheerscherm 👥 Gebruikers** (`BeheerGebruikers`): Pro-vlag wisselen + gebruiker verwijderen
+  (X-Admin-Key). Endpoints: `GET /api/gebruikers`, `PUT /{id}/abonnement`, `DELETE /{id}`.
+- **CloudKit deelt het e-mailadres meestal niet** → de automatische beheerder→PRO-herkenning
+  (`BEHEERDER_EMAIL`) faalt vaak. Oplossing: **`PRO_ACCOUNT_IDS`** (env, komma-gescheiden
+  opake CloudKit-ID's) → die accounts krijgen bij aanmelden altijd PRO + beheerder. Staat in
+  de NAS `.env` (niet in de repo), overleeft een verse DB. Manueel gezette PRO blijft staan
+  (aanmelden forceert nooit FREE).
+
+### UI / overig
+- **Bron-ticker**: Kpler-chip vervangen door de werkende **ADS-B** (airplanes.live); Kpler-regel
+  staat als commentaar klaar voor heractivatie. Op telefoon een **korte naam** (AIS / ADS-B).
+- **Kaartlagen**: de bron tussen haakjes uit de 5 overlay-labels gehaald → nu als **hover-tooltip**
+  (schoner label, bron op aanwijzen).
+
+### Deploy / NAS (aanvulling)
+- **Passwordless docker-sudo** werkt nu (NOPASSWD), maar **alleen voor `sudo /usr/local/bin/docker`**
+  (niet `sudo sh script`). Container Manager-project heet **`alltrexx`**. Recreate bij env-wijziging
+  (bv. `PRO_ACCOUNT_IDS`): `docker compose -p alltrexx up -d --remove-orphans` (DB blijft draaien).
+- Backup-container kreeg `TZ=Europe/Amsterdam` (timestamp volgt wandklok).
