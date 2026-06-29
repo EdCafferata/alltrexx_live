@@ -3,11 +3,15 @@ package info.cafferata.alltrexx.service;
 import info.cafferata.alltrexx.model.Gebruiker;
 import info.cafferata.alltrexx.repository.GebruikerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Minimale gebruikers-administratie voor abonnement (FREE/PRO) en beheer.
@@ -19,15 +23,27 @@ public class GebruikerService {
 
     private final GebruikerRepository repo;
 
+    /** Vaste PRO-accounts (opake CloudKit-ID's) uit app.pro.account-ids — altijd PRO,
+     *  ongeacht e-mail-detectie, en overleeft een verse DB. */
+    @Value("${app.pro.account-ids:}")
+    private String proAccountIds;
+
+    private Set<String> proAccounts() {
+        return Arrays.stream(proAccountIds.split(","))
+            .map(String::trim).filter(s -> !s.isEmpty())
+            .collect(Collectors.toSet());
+    }
+
     /** Upsert bij login: maakt het account aan (FREE) of werkt naam/laatsteLogin bij.
-     *  Beheerders krijgen automatisch PRO zodat ze alles kunnen gebruiken/testen. */
+     *  Beheerders én vaste PRO-accounts krijgen automatisch PRO. */
     @Transactional
     public Gebruiker aanmelden(String externeId, String naam, boolean beheerder) {
         Gebruiker g = repo.findByExterneId(externeId).orElseGet(() ->
             Gebruiker.builder().externeId(externeId).abonnement("FREE").build());
         if (naam != null && !naam.isBlank()) g.setNaam(naam.trim());
-        g.setBeheerder(beheerder);
-        if (beheerder) g.setAbonnement("PRO"); // beheerder = volledige toegang
+        boolean isAdmin = beheerder || proAccounts().contains(externeId);
+        g.setBeheerder(isAdmin);
+        if (isAdmin) g.setAbonnement("PRO"); // beheerder/vast PRO = volledige toegang
         g.setLaatsteLogin(LocalDateTime.now());
         return repo.save(g);
     }

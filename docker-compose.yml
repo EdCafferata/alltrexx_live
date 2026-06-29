@@ -79,6 +79,7 @@ services:
       JWT_SECRET:            ${JWT_SECRET}
       MARINETRAFFIC_API_KEY: ${MARINETRAFFIC_API_KEY}
       ADMIN_API_KEY:         ${ADMIN_API_KEY}
+      PRO_ACCOUNT_IDS:       ${PRO_ACCOUNT_IDS:-}
       AISHUB_USERNAME:       ${AISHUB_USERNAME}
       KPLER_TOKEN:           ${KPLER_TOKEN}
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/alltrexx?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
