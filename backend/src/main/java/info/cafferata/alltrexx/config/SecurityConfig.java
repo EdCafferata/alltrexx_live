@@ -34,6 +34,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()    // login/register
                 .requestMatchers("/api/admin/**").permitAll()   // beheer — key in controller (X-Admin-Key)
                 .requestMatchers("/api/mobiel/**").permitAll()  // mobiele app — per-toestel token in controller
+                .requestMatchers("/api/sleutel/**").permitAll() // self-service gratis inlogsleutel
+                .requestMatchers("/api/gebruikers/**").permitAll() // aanmelden publiek; beheer via X-Admin-Key
                 .requestMatchers("/actuator/health").permitAll()
                 // ── Overige API vereist authenticatie ─────────────────────
                 .requestMatchers("/api/**").authenticated()

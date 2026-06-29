@@ -69,6 +69,17 @@
   padding: 2px 8px;
 }
 
+.account-rol-rij { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+
+.account-abo {
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 2px 9px;
+}
+.account-abo.pro  { background: #0D47A1; color: #fff; }
+.account-abo.free { background: rgba(0,0,0,0.10); color: #333; }
+
 .account-info {
   font-size: 13px;
   color: #444;
@@ -145,6 +156,64 @@
   margin-top: 8px;
   font-size: 12px;
   color: #b71c1c;
+}
+
+/* ── Inlogsleutel-sectie (gratis / Pro) ─────────────────── */
+.sleutel-sectie {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sleutel-titel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.sleutel-label { font-size: 12.5px; color: #444; margin-top: 4px; }
+
+.sleutel-uitleg {
+  font-size: 11.5px;
+  color: #666;
+  margin: -2px 0 4px 2px;
+  line-height: 1.35;
+}
+
+.sleutel-token {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #0D47A1;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 4px 0;
+  word-break: break-all;
+  user-select: all;
+}
+
+.sleutel-pro {
+  background: #0D47A1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sleutel-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.85);
+  color: #0D47A1;
+  border-radius: 8px;
+  padding: 2px 7px;
 }
 
 /* ── Beheerdersbalk ─────────────────────────────────────── */

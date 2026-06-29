@@ -39,27 +39,32 @@ const BASIS_TILES = {
 // ── Overlays die over elke kaart heen kunnen ─────────────────────────────────
 const OVERLAYS = {
   seamap: {
-    label: '⚓ Nautische zeekaart (OpenSeaMap)',
+    label: '⚓ Nautische zeekaart',
+    bron: 'Bron: OpenSeaMap',
     url: 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',
     attribution: '© <a href="https://www.openseamap.org">OpenSeaMap</a>',
   },
   fietsroutes: {
-    label: '🚴 Fietsroutes (Waymarked Trails)',
+    label: '🚴 Fietsroutes',
+    bron: 'Bron: Waymarked Trails',
     url: 'https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',
     attribution: '© Waymarked Trails © OpenStreetMap',
   },
   wandelroutes: {
-    label: '🥾 Wandelroutes (Waymarked Trails)',
+    label: '🥾 Wandelroutes',
+    bron: 'Bron: Waymarked Trails',
     url: 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
     attribution: '© Waymarked Trails © OpenStreetMap',
   },
   spoorwegen: {
-    label: '🚆 Spoorwegen (OpenRailwayMap)',
+    label: '🚆 Spoorwegen',
+    bron: 'Bron: OpenRailwayMap',
     url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
     attribution: '© OpenRailwayMap © OpenStreetMap',
   },
   luchtvaart: {
-    label: '✈️ Vliegvelden & luchtruim (OpenAIP)',
+    label: '✈️ Vliegvelden & luchtruim',
+    bron: 'Bron: OpenAIP',
     url: `https://api.tiles.openaip.net/api/data/openaip/{z}/{x}/{y}.png?apiKey=${process.env.REACT_APP_OPENAIP_KEY || ''}`,
     attribution: '© <a href="https://www.openaip.net">OpenAIP</a> (CC-BY-NC)',
     vergtKey: !process.env.REACT_APP_OPENAIP_KEY, // gratis key via openaip.net
@@ -396,7 +401,7 @@ export default function TrackerKaart() {
             <div className="paneel-titel">Overlays</div>
             {Object.entries(OVERLAYS).map(([key, ov]) => (
               <label key={key} className={`paneel-rij ${ov.vergtKey ? 'paneel-rij-uit' : ''}`}
-                title={ov.vergtKey ? 'API-key nodig — gratis aan te maken op openaip.net' : undefined}>
+                title={ov.bron + (ov.vergtKey ? ' · API-key nodig (gratis op openaip.net)' : '')}>
                 <input type="checkbox" checked={overlaysAan[key]} disabled={ov.vergtKey}
                   onChange={e => setOverlaysAan(prev => ({ ...prev, [key]: e.target.checked }))} />
                 <span>{ov.label}{ov.vergtKey && ' 🔑'}</span>

@@ -44,6 +44,11 @@ public class Tracker {
     @Column(unique = true)
     private String token;
 
+    /** Abonnement van deze sleutel: "FREE" (gratis) of "PRO" (betaald, binnenkort).
+     *  Gate voor toekomstige Pro-features per toestel. */
+    @Builder.Default
+    private String abonnement = "FREE";
+
     /** Omschrijving / extra info */
     private String omschrijving;
 

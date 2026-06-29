@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { startLogin, logUit, huidigeGebruiker } from '../services/cloudkit';
+import { maakGratisSleutel, aanmeldenGebruiker } from '../services/api';
 import BeheerBoten from './BeheerBoten';
+import BeheerGebruikers from './BeheerGebruikers';
+import Logboek from './Logboek';
 import './AccountMenu.css';
 
 // ── Logo-knop linksboven: account, login/registratie (CloudKit) en beheer ────
@@ -11,12 +14,32 @@ export default function AccountMenu() {
   const [bezig, setBezig] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [botenOpen, setBotenOpen] = useState(false);
+  const [logboekOpen, setLogboekOpen] = useState(false);
+  const [gebruikersOpen, setGebruikersOpen] = useState(false);
+
+  // Inlogsleutel (token) voor de mobiele app — eerder aangemaakt? uit localStorage.
+  const [sleutel, setSleutel] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('alltrexx-sleutel')); }
+    catch { return null; }
+  });
+  const [sleutelBezig, setSleutelBezig] = useState(false);
+  const [sleutelFout, setSleutelFout] = useState(null);
+  const [gekopieerd, setGekopieerd] = useState(false);
 
   // AVG-toestemmingen
   const [akkoordNoodzakelijk, setAkkoordNoodzakelijk] = useState(false);
   const [akkoordStatistiek, setAkkoordStatistiek] = useState(false);
 
-  useEffect(() => { huidigeGebruiker().then(setGebruiker); }, []);
+  // Meld de CloudKit-gebruiker aan bij de backend en verrijk met abonnement (FREE/PRO).
+  // Faalt de backend, dan tonen we de gebruiker toch (zonder Pro-opties).
+  const koppelAbonnement = (g) => {
+    if (!g) { setGebruiker(null); return; }
+    aanmeldenGebruiker(g.userRecordName, g.naam, g.isBeheerder)
+      .then(u => setGebruiker({ ...g, abonnement: u.abonnement }))
+      .catch(() => setGebruiker({ ...g, abonnement: 'FREE' }));
+  };
+
+  useEffect(() => { huidigeGebruiker().then(koppelAbonnement); /* eslint-disable-next-line */ }, []);
 
   // Zodra het verplichte vinkje aan staat: CloudKit laten tekenen in
   // #apple-sign-in-button en wachten tot de gebruiker daarmee inlogt.
@@ -25,7 +48,7 @@ export default function AccountMenu() {
     setFout(null); setBezig(true);
     startLogin()
       .then(g => {
-        setGebruiker(g);
+        koppelAbonnement(g);
         // Toestemmingskeuzes lokaal bewaren (niet op de server)
         localStorage.setItem('alltrexx-consent', JSON.stringify({
           noodzakelijk: true,
@@ -42,6 +65,31 @@ export default function AccountMenu() {
     try { await logUit(); } catch { /* sessie lokaal opruimen volstaat */ }
     setGebruiker(null);
   };
+
+  // Gratis inlogsleutel aanmaken (token voor de mobiele app). De gebruiker bewaart
+  // 'm zelf; we cachen 'm lokaal zodat hij na herladen zichtbaar blijft.
+  const maakSleutel = async () => {
+    setSleutelFout(null); setSleutelBezig(true);
+    try {
+      const naam = gebruiker?.naam ? `${gebruiker.naam} (app)` : 'Mijn tracker';
+      const t = await maakGratisSleutel(naam);
+      setSleutel(t);
+      localStorage.setItem('alltrexx-sleutel', JSON.stringify(t));
+    } catch (e) {
+      setSleutelFout(e?.response?.data?.message || e.message || 'Aanmaken mislukt');
+    } finally { setSleutelBezig(false); }
+  };
+
+  const kopieerSleutel = async () => {
+    try {
+      await navigator.clipboard.writeText(sleutel.token);
+      setGekopieerd(true);
+      setTimeout(() => setGekopieerd(false), 1800);
+    } catch { /* clipboard niet beschikbaar — gebruiker selecteert handmatig */ }
+  };
+
+  // Pro (of beheerder) ontgrendelt alle beheer-/kijk-opties; Free krijgt alleen het logboek.
+  const isPro = gebruiker?.abonnement === 'PRO' || gebruiker?.isBeheerder;
 
   return (
     <>
@@ -60,25 +108,74 @@ export default function AccountMenu() {
             <>
               <div className="account-kop">👤 {gebruiker.naam}</div>
               {gebruiker.email && <div className="account-email">{gebruiker.email}</div>}
-              {gebruiker.isBeheerder && <div className="account-rol">🛠️ Beheerder</div>}
+              <div className="account-rol-rij">
+                <span className={'account-abo ' + (isPro ? 'pro' : 'free')}>
+                  {isPro ? '⭐ PRO' : 'FREE'}
+                </span>
+                {gebruiker.isBeheerder && <span className="account-rol">🛠️ Beheerder</span>}
+              </div>
               <div className="account-info">
                 Je gegevens en tracks staan veilig in jouw eigen Apple iCloud (CloudKit).
-                Deze site slaat zelf géén persoonsgegevens op.
+                De server bewaart alleen een account-ID, je naam als label en je
+                abonnementsstatus — geen e-mail of trackdata.
               </div>
 
-              {/* Beheer-sectie onder het inlog-gedeelte. CloudKit geeft het e-mailadres
-                  meestal niet vrij, dus we tonen 'm voor elke ingelogde gebruiker; de
-                  echte toegang wordt afgeschermd door de admin-key op de backend. */}
-              {gebruiker && (
-                <div className="beheer-sectie">
-                  <div className="beheer-titel">🛠️ Beheer</div>
-                  <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🛰️ Alle data beheren</button>
-                  <button className="account-knop">🔍 Data zoeken</button>
-                  <button className="account-knop">📊 Rapportages</button>
-                  <button className="account-knop">👥 Gebruikers</button>
-                  <button className="account-knop">⚙️ Instellingen</button>
-                </div>
-              )}
+              {/* Inlogsleutel voor de mobiele app: gratis (token) of Pro (binnenkort) */}
+              <div className="sleutel-sectie">
+                <div className="sleutel-titel">🔑 Inlogsleutel voor de app</div>
+                {sleutel ? (
+                  <div className="sleutel-box">
+                    <div className="sleutel-label">Jouw gratis sleutel ({sleutel.naam}):</div>
+                    <code className="sleutel-token">{sleutel.token}</code>
+                    <button className="account-knop" onClick={kopieerSleutel}>
+                      {gekopieerd ? '✅ Gekopieerd' : '📋 Sleutel kopiëren'}
+                    </button>
+                    <div className="account-info">
+                      Vul deze sleutel in de Alltrexx-app in om je positie te delen.
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button className="account-knop" disabled={sleutelBezig} onClick={maakSleutel}>
+                      {sleutelBezig ? 'Aanmaken…' : '🆓 Gratis sleutel aanmaken'}
+                    </button>
+                    <div className="sleutel-uitleg">
+                      Alleen je eigen voertuig &amp; data · logboek (binnenkort)
+                    </div>
+                    <button className="account-knop sleutel-pro" disabled
+                            title="Binnenkort beschikbaar">
+                      ⭐ Pro-sleutel <span className="sleutel-badge">binnenkort</span>
+                    </button>
+                    <div className="sleutel-uitleg">
+                      Alle voertuigen &amp; beheer-opties · onbeperkt oproepen
+                    </div>
+                    {sleutelFout && <div className="account-fout">⚠️ {sleutelFout}</div>}
+                  </>
+                )}
+              </div>
+
+              {/* Logboeken: voor iedereen (Free = eigen data). Pro/beheer-opties eronder
+                  alleen voor PRO/beheerder; echte toegang blijft afgeschermd via de admin-key. */}
+              <div className="beheer-sectie">
+                <button className="account-knop" onClick={() => setLogboekOpen(!logboekOpen)}>
+                  📖 Logboeken
+                </button>
+                {logboekOpen && <Logboek />}
+
+                {isPro ? (
+                  <>
+                    <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🛰️ Alle data beheren</button>
+                    <button className="account-knop">🔍 Data zoeken</button>
+                    <button className="account-knop">📊 Rapportages</button>
+                    <button className="account-knop" onClick={() => { setGebruikersOpen(true); setOpen(false); }}>👥 Gebruikers</button>
+                    <button className="account-knop">⚙️ Instellingen</button>
+                  </>
+                ) : (
+                  <div className="sleutel-uitleg">
+                    ⭐ Pro ontgrendelt alle voertuigen &amp; beheer-opties — binnenkort.
+                  </div>
+                )}
+              </div>
 
               <button className="account-knop account-uitlog" onClick={uitloggen}>
                 Uitloggen
@@ -89,8 +186,8 @@ export default function AccountMenu() {
               <div className="account-kop">Inloggen of registreren</div>
               <div className="account-info">
                 Log in met je Apple ID. Nieuw? Registreren gebeurt automatisch bij je
-                eerste login. Alle accountgegevens en trackdata worden uitsluitend
-                opgeslagen in Apple CloudKit — niet op deze website.
+                eerste login. Je trackdata staat in Apple CloudKit; de server bewaart
+                alleen een account-ID, je naam als label en je abonnement (FREE/PRO).
               </div>
 
               {/* AVG / GDPR toestemming */}
@@ -115,8 +212,9 @@ export default function AccountMenu() {
                   <ul>
                     <li><strong>Wat:</strong> Apple ID-identiteit (naam, e-mail) en je trackdata
                       (posities van boot, fiets, auto, vliegtuig of wandeling).</li>
-                    <li><strong>Waar:</strong> uitsluitend in Apple CloudKit. Deze website en
-                      onze server slaan géén accounts of persoonsgegevens op.</li>
+                    <li><strong>Waar:</strong> je trackdata staat in Apple CloudKit. Onze
+                      server bewaart alleen een account-ID, je naam als label en je
+                      abonnementsstatus (FREE/PRO) — geen e-mail of trackdata.</li>
                     <li><strong>Grondslag:</strong> jouw toestemming (art. 6 lid 1a AVG) en
                       uitvoering van de dienst (art. 6 lid 1b AVG).</li>
                     <li><strong>Bewaartermijn:</strong> zolang je account bestaat; je kunt alles
@@ -149,6 +247,7 @@ export default function AccountMenu() {
       )}
 
       {botenOpen && <BeheerBoten onSluiten={() => setBotenOpen(false)} />}
+      {gebruikersOpen && <BeheerGebruikers onSluiten={() => setGebruikersOpen(false)} />}
     </>
   );
 }

@@ -16,6 +16,14 @@ export const getRoute = (trackerId, uur = 24) =>
 /** Laatste update per databron (AISHUB, KPLER, ...) */
 export const getBronnen = () => api.get('/kaart/bronnen').then(r => r.data);
 
+/** Maak een gratis inlogsleutel (token) aan voor de mobiele app */
+export const maakGratisSleutel = (naam, type = 'PERSON') =>
+  api.post('/sleutel/gratis', { naam, type }).then(r => r.data);
+
+/** Meld de ingelogde gebruiker aan bij de backend (upsert) → geeft abonnement terug */
+export const aanmeldenGebruiker = (externeId, naam, beheerder) =>
+  api.post('/gebruikers/aanmelden', { externeId, naam, beheerder }).then(r => r.data);
+
 /** Stuur positie vanuit app */
 export const stuurPositie = (data, token) =>
   api.post('/trackers/positie', data, {
@@ -44,3 +52,16 @@ export const adminWisPosities = (key, id) =>
 /** Zoek ICAO 24-bit hex bij een vliegtuigregistratie (bv. PH-USN) */
 export const adminZoekIcao = (key, reg) =>
   api.get('/admin/vliegtuig/icao', { params: { reg }, headers: { 'X-Admin-Key': key } }).then(r => r.data);
+
+// ── Gebruikersbeheer (admin-key) ────────────────────────────────────────────
+/** Alle gebruikers ophalen (beheer) */
+export const adminGetGebruikers = (key) =>
+  api.get('/gebruikers', adminHeaders(key)).then(r => r.data);
+
+/** Abonnement (Pro-vlag) van een gebruiker zetten: 'PRO' of 'FREE' */
+export const adminZetAbonnement = (key, id, abonnement) =>
+  api.put(`/gebruikers/${id}/abonnement`, { abonnement }, adminHeaders(key)).then(r => r.data);
+
+/** Gebruiker verwijderen */
+export const adminVerwijderGebruiker = (key, id) =>
+  api.delete(`/gebruikers/${id}`, adminHeaders(key));
