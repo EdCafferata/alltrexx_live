@@ -80,8 +80,25 @@ rsync -a --delete frontend/build/ /Volumes/Backup-Ed/alltrexx-nas/frontend/build
 - **Container-DNS werkt niet** → externe hosts staan in `extra_hosts` (data.aishub.net,
   hexdb.io, api.airplanes.live).
 
-## Backup (issue #5)
-- `backup`-container: elk uur `mysqldump` → `./db-backups` (laatste 168 = 7 dagen).
+## NAS-toegang (29 juni 2026)
+- **NAS:** `192.168.1.179` (KROON-9-NAS, LAN). SSH-user **`Ed`** (administrators).
+  Passwordless SSH-sleutel staat geïnstalleerd: `ssh -i ~/.ssh/id_ed25519 Ed@192.168.1.179`.
+- **Docker** zit op `/usr/local/bin/docker` (niet in non-interactief PATH) en `docker.sock`
+  is `root:root` → **docker vereist `sudo`** (NOPASSWD is niet ingesteld). Docker-commando's
+  dus zelf draaien in Terminal: `ssh -t Ed@192.168.1.179 'sudo /usr/local/bin/docker …'`.
+- **Container Manager-project heet NIET `alltrexx-live`** (CM gebruikt een eigen projectnaam).
+  Een `docker compose up` met de compose-`name:` botst daarom ("name already in use").
+  Recreate via CLI met de gedetecteerde projectnaam: `docker compose -p <CM-naam> up -d`,
+  óf via de Container Manager GUI (Project > Build). Helper-script op de NAS:
+  `~/alltrexx-rebuild.sh` (detecteert de projectnaam zelf) → `sudo sh ~/alltrexx-rebuild.sh`.
+
+## Backup (issue #5) — ACTIEF sinds 29 juni 2026
+- `backup`-container draait: elk uur `mysqldump` → `./db-backups` (laatste 168 = 7 dagen).
+  Geverifieerd: dumps ~360 KB (77 trackers + ~18k posities). `TZ=Europe/Amsterdam` zodat
+  de timestamp in de bestandsnaam de wandklok volgt.
+- Handmatige dump: `ssh -t Ed@192.168.1.179 'sudo sh ~/alltrexx-backup.sh'` (script leest het
+  root-wachtwoord uit de container, dumpt → `db-backups/alltrexx-handmatig-<ts>.sql.gz`).
+- Restore: `gzip -dc <dump>.sql.gz | sudo /usr/local/bin/docker exec -i alltrexx-db mysql -uroot -p<pw> alltrexx`.
 - Snelle trackers-restore: `cd data && ./restore-boten.sh` (leest `.env`, upsert op externeId).
 - `data/boten-backup.json` bevat alle trackers (boten + vliegtuigen).
 

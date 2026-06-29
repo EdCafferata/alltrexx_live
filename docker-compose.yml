@@ -105,6 +105,8 @@ services:
       database:
         condition: service_healthy
     environment:
+      # NL-tijd zodat de timestamp in de backup-bestandsnaam de wandklok volgt (niet UTC).
+      TZ: Europe/Amsterdam
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
