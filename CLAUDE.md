@@ -6,7 +6,7 @@ personen 🚶 en treinen 🚆. Live kaart op **https://alltrexx.live**. Data kom
 meerdere bronnen per type (AIS, ADS-B, mobiele app).
 
 ## Eigenaar
-- **Ed Cafferata** (edcafferata@icloud.com) · **Mede-eigenaar:** Jim Orie
+- **Ed Cafferata** (edcafferata@icloud.com)
 - **Team ID:** `9J2S23WJH3` · Ondersteund door The IT Crowd
 
 ## Locatie & deploy

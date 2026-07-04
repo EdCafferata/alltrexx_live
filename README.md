@@ -20,7 +20,7 @@ fietsen 🚴, auto's 🚗, vliegtuigen ✈️, personen 🚶 en treinen 🚆.
 Spring Boot 3.2 · Java 21 · MySQL 8 · React 18 · Leaflet · Docker (Synology Container Manager).
 
 ## Eigenaar
-- **Ed Cafferata** (edcafferata@icloud.com) · mede-eigenaar **Jim Orie** · The IT Crowd
+- **Ed Cafferata** (edcafferata@icloud.com) · The IT Crowd
 
 ## Documentatie
 - `CLAUDE.md` — projectcontext, structuur, endpoints, deploy-samenvatting
