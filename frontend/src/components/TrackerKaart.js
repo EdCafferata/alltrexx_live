@@ -123,6 +123,15 @@ function ViewVolger({ onWijzig }) {
   return null;
 }
 
+// Hulpcomponent: springt naar de opgehaalde locatie van het toestel zodra die binnen is
+function GaNaarEigenLocatie({ doel }) {
+  const map = useMap();
+  useEffect(() => {
+    if (doel) map.setView([doel.lat, doel.lon], doel.zoom);
+  }, [doel, map]);
+  return null;
+}
+
 // Beginweergave bepalen: eerst uit de URL (?lat&lon&z&laag&types), anders een
 // vastgehouden weergave uit localStorage, anders heel Nederland.
 function leesStartConfig() {
@@ -136,16 +145,19 @@ function leesStartConfig() {
       preset: p.get('laag') || 'boot',
       types: p.get('types') ? p.get('types').split(',') : null,
       pinned: false,
+      geoZoeken: false,
     };
   }
   try {
     const opg = JSON.parse(localStorage.getItem('alltrexx-view') || 'null');
     if (localStorage.getItem('alltrexx-view-pin') === '1' && opg) {
-      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'boot', types: null, pinned: true };
+      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'boot', types: null, pinned: true, geoZoeken: false };
     }
   } catch { /* negeren */ }
-  // Standaard-start: Boot-kaart, alleen boten zichtbaar + routes aan
-  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'boot', types: null, pinned: false };
+  // Standaard-start: Boot-kaart, alleen boten zichtbaar + routes aan. Geen URL-link en
+  // geen vastgehouden weergave → geoZoeken geeft aan dat we de locatie van het toestel
+  // mogen proberen op te halen (zie GeoLocatieOphalen), met heel Nederland als terugval.
+  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'boot', types: null, pinned: false, geoZoeken: true };
 }
 
 export default function TrackerKaart() {
@@ -170,6 +182,20 @@ export default function TrackerKaart() {
   const [huidigeView, setHuidigeView] = useState({ lat: start.lat, lon: start.lon, zoom: start.zoom });
   const [vastgezet, setVastgezet] = useState(start.pinned);
   const [gedeeld, setGedeeld] = useState(false);
+
+  // Eigen locatie ophalen als startpunt (telefoon/tablet/laptop) — alleen als er geen
+  // deel-link of vastgehouden weergave is. Lukt het niet (geweigerd/timeout/geen
+  // ondersteuning), dan blijft gewoon de standaard NL-weergave staan.
+  const [eigenLocatie, setEigenLocatie] = useState(null);
+  useEffect(() => {
+    if (!start.geoZoeken || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setEigenLocatie({ lat: pos.coords.latitude, lon: pos.coords.longitude, zoom: 12 }),
+      () => { /* geweigerd of mislukt: standaard NL-weergave blijft staan */ },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const kiesPreset = (key) => {
     setPreset(key);
@@ -294,6 +320,7 @@ export default function TrackerKaart() {
 
         <ZoomNaar doel={zoomDoel} />
         <ViewVolger onWijzig={setHuidigeView} />
+        <GaNaarEigenLocatie doel={eigenLocatie} />
 
         {/* Markers per type */}
         {Object.entries(ICOON_CONFIG).map(([type, cfg]) =>
