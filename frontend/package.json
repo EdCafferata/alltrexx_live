@@ -8,7 +8,7 @@
     "react-scripts": "5.0.1",
     "react-leaflet": "^4.2.1",
     "leaflet": "^1.9.4",
-    "axios": "^1.7.2",
+    "axios": "^1.18.0",
     "@tanstack/react-query": "^5.40.0"
   },
   "scripts": {
