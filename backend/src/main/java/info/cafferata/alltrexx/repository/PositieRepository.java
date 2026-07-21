@@ -24,28 +24,38 @@ public interface PositieRepository extends JpaRepository<Positie, Long> {
     List<Positie> findByTrackerAndTijdstipBetweenOrderByTijdstip(
         Tracker tracker, LocalDateTime van, LocalDateTime tot);
 
-    /** Alle laatste posities van actieve trackers (live kaart) */
-    @Query("""
-        SELECT p FROM Positie p
-        WHERE p.tijdstip = (
-            SELECT MAX(p2.tijdstip) FROM Positie p2
-            WHERE p2.tracker = p.tracker
-        )
-        AND p.tracker.actief = true
-    """)
+    /**
+     * Alle laatste posities van actieve trackers (live kaart).
+     * Native query met een niet-gecorreleerde JOIN (i.p.v. een per-rij DEPENDENT
+     * SUBQUERY) — bij groei van de posities-tabel (100k+ rijen) werd de oude
+     * gecorreleerde-subquery-variant onbruikbaar traag (bleef hangen, zie #14).
+     * Deze GROUP BY + JOIN-vorm gebruikt idx_tracker_tijd efficiënt en blijft
+     * ook bij veel data snel.
+     */
+    @Query(value = """
+        SELECT p.* FROM posities p
+        INNER JOIN (
+            SELECT tracker_id, MAX(tijdstip) AS max_tijdstip
+            FROM posities
+            GROUP BY tracker_id
+        ) laatste ON laatste.tracker_id = p.tracker_id AND laatste.max_tijdstip = p.tijdstip
+        INNER JOIN trackers t ON t.id = p.tracker_id
+        WHERE t.actief = true
+    """, nativeQuery = true)
     List<Positie> findLaatstePositiesActieveTrackers();
 
-    /** Laatste posities per tracker type */
-    @Query("""
-        SELECT p FROM Positie p
-        WHERE p.tijdstip = (
-            SELECT MAX(p2.tijdstip) FROM Positie p2
-            WHERE p2.tracker = p.tracker
-        )
-        AND p.tracker.actief = true
-        AND p.tracker.type = :type
-    """)
-    List<Positie> findLaatstePositiesPerType(@Param("type") info.cafferata.alltrexx.model.TrackerType type);
+    /** Laatste posities per tracker type — zelfde niet-gecorreleerde JOIN-vorm. */
+    @Query(value = """
+        SELECT p.* FROM posities p
+        INNER JOIN (
+            SELECT tracker_id, MAX(tijdstip) AS max_tijdstip
+            FROM posities
+            GROUP BY tracker_id
+        ) laatste ON laatste.tracker_id = p.tracker_id AND laatste.max_tijdstip = p.tijdstip
+        INNER JOIN trackers t ON t.id = p.tracker_id
+        WHERE t.actief = true AND t.type = :type
+    """, nativeQuery = true)
+    List<Positie> findLaatstePositiesPerType(@Param("type") String type);
 
     /** Route van de afgelopen X uur */
     @Query("""

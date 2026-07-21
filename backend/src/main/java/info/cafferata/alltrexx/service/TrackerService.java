@@ -149,7 +149,7 @@ public class TrackerService {
 
     /** Laatste posities gefilterd op type */
     public List<PositieDto> liveKaartPerType(TrackerType type) {
-        return positieRepo.findLaatstePositiesPerType(type)
+        return positieRepo.findLaatstePositiesPerType(type.name())
             .stream()
             .map(PositieDto::van)
             .toList();
