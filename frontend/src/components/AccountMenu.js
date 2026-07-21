@@ -3,6 +3,9 @@ import { startLogin, logUit, huidigeGebruiker } from '../services/cloudkit';
 import { maakGratisSleutel, aanmeldenGebruiker } from '../services/api';
 import BeheerBoten from './BeheerBoten';
 import BeheerGebruikers from './BeheerGebruikers';
+import DataZoeken from './DataZoeken';
+import Rapportages from './Rapportages';
+import Instellingen from './Instellingen';
 import Logboek from './Logboek';
 import './AccountMenu.css';
 
@@ -16,6 +19,9 @@ export default function AccountMenu() {
   const [botenOpen, setBotenOpen] = useState(false);
   const [logboekOpen, setLogboekOpen] = useState(false);
   const [gebruikersOpen, setGebruikersOpen] = useState(false);
+  const [dataZoekenOpen, setDataZoekenOpen] = useState(false);
+  const [rapportagesOpen, setRapportagesOpen] = useState(false);
+  const [instellingenOpen, setInstellingenOpen] = useState(false);
 
   // Inlogsleutel (token) voor de mobiele app — eerder aangemaakt? uit localStorage.
   const [sleutel, setSleutel] = useState(() => {
@@ -165,10 +171,10 @@ export default function AccountMenu() {
                 {isPro ? (
                   <>
                     <button className="account-knop" onClick={() => { setBotenOpen(true); setOpen(false); }}>🛰️ Alle data beheren</button>
-                    <button className="account-knop">🔍 Data zoeken</button>
-                    <button className="account-knop">📊 Rapportages</button>
+                    <button className="account-knop" onClick={() => { setDataZoekenOpen(true); setOpen(false); }}>🔍 Data zoeken</button>
+                    <button className="account-knop" onClick={() => { setRapportagesOpen(true); setOpen(false); }}>📊 Rapportages</button>
                     <button className="account-knop" onClick={() => { setGebruikersOpen(true); setOpen(false); }}>👥 Gebruikers</button>
-                    <button className="account-knop">⚙️ Instellingen</button>
+                    <button className="account-knop" onClick={() => { setInstellingenOpen(true); setOpen(false); }}>⚙️ Instellingen</button>
                   </>
                 ) : (
                   <div className="sleutel-uitleg">
@@ -248,6 +254,9 @@ export default function AccountMenu() {
 
       {botenOpen && <BeheerBoten onSluiten={() => setBotenOpen(false)} />}
       {gebruikersOpen && <BeheerGebruikers onSluiten={() => setGebruikersOpen(false)} />}
+      {dataZoekenOpen && <DataZoeken onSluiten={() => setDataZoekenOpen(false)} />}
+      {rapportagesOpen && <Rapportages onSluiten={() => setRapportagesOpen(false)} />}
+      {instellingenOpen && <Instellingen onSluiten={() => setInstellingenOpen(false)} />}
     </>
   );
 }

@@ -1,0 +1,16 @@
+.dz-select { width: 100%; margin: 10px 0 8px; }
+
+.dz-periodes { display: flex; gap: 6px; margin-bottom: 10px; }
+.dz-periode {
+  flex: 1;
+  background: rgba(255,255,255,0.08) !important;
+  color: #e8eefb !important;
+  font-weight: 500 !important;
+  padding: 7px 0 !important;
+}
+.dz-periode:hover { background: rgba(255,255,255,0.16) !important; }
+.dz-periode.actief { background: #0071e3 !important; font-weight: 700 !important; }
+
+.dz-lijst { max-height: 320px; overflow-y: auto; }
+.dz-item { padding: 8px 12px; }
+.dz-tijd { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }

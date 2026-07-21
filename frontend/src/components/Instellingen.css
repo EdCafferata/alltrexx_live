@@ -1,0 +1,22 @@
+.ins-sectie-titel {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.75);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin: 16px 0 8px;
+}
+.ins-sectie-titel:first-of-type { margin-top: 4px; }
+
+.ins-melding {
+  background: rgba(60,200,120,0.15); border: 1px solid rgba(60,200,120,0.4);
+  color: #b8ffd6; border-radius: 10px; padding: 8px 12px; font-size: 13px; margin: 8px 0;
+}
+
+.ins-alles-wissen {
+  width: 100%; margin-top: 14px;
+  background: rgba(255,80,80,0.18) !important; color: #ffb4b4 !important;
+}
+.ins-alles-wissen:hover { background: rgba(255,80,80,0.32) !important; }
+
+.ins-over {
+  font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; margin-top: 4px;
+}
+.ins-over a { color: #7ab8ff; }
