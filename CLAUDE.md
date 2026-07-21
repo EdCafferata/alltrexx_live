@@ -129,9 +129,40 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
 # … einde: commit + push; werk CLAUDE.md / ONTWERP_KEUZES.md bij
 ```
 
+## Security & performance-fix (21 juli 2026)
+- **Alle Dependabot-alerts opgelost** (32 → 7 open, alle 7 bewust geaccepteerd):
+  spring-boot-starter-parent → 3.2.12, h2 → 2.3.232, mysql-connector-j → 8.4.0,
+  axios → ^1.18.0, plus `overrides` in frontend/package.json voor 10 transitieve
+  npm-kwetsbaarheden. De 6 pom.xml-alerts (postgresql/devtools/mysql-connector-
+  **java**) bleken een **stale GitHub dependency-graph-snapshot** te zijn — die
+  packages stonden al niet meer in pom.xml; een push forceert een verse scan.
+  **Bewust NIET gefixed:** webpack-dev-server naar v5 (6 medium alerts) en de
+  svgo/@svgr-keten (1 high) — beide alleen bereikbaar via react-scripts' interne
+  build/dev-tooling (nooit in de productie-bundle), en een "fix" zou `npm start`
+  breken (v5 laat `onAfterSetupMiddleware` vallen) resp. react-scripts@0.0.0
+  vereisen. Alleen op te lossen door van CRA te ejecten — niet vanavond gedaan.
+- **PRODUCTIE-INCIDENT gevonden en opgelost:** `/api/kaart/live` en `/live/{type}`
+  gebruikten een gecorreleerde subquery (`WHERE tijdstip = (SELECT MAX(...) ...)`)
+  om de laatste positie per tracker te vinden. Bij 96k+ posities / 212 actieve
+  trackers liep dit query-patroon vast (zelfs een kale `COUNT(*)` haalde de 20s-
+  timeout niet — bevestigd via `EXPLAIN` op de live DB). Herschreven naar een
+  niet-gecorreleerde JOIN met een `MAX(tijdstip)`-per-tracker-subquery in de
+  FROM-clause (`PositieRepository.findLaatstePositiesActieveTrackers/PerType`,
+  nu `nativeQuery = true`). Resultaat: van hangend/timeout → 1,6s op productie.
+  **Let op bij toekomstige `Positie`-queries:** vermijd het "gecorreleerde
+  subquery per rij"-patroon zodra de tabel groot wordt — gebruik de JOIN-vorm.
+- **Drie lege Pro-knoppen afgemaakt** (deden nog niks): 🔍 Data zoeken
+  (`DataZoeken.js`, hergebruikt `/kaart/route/{id}`), 📊 Rapportages
+  (`Rapportages.js`, hergebruikt `/admin/trackers` + `/kaart/bronnen`),
+  ⚙️ Instellingen (`Instellingen.js`, puur lokaal — admin-key/app-sleutel/
+  toestemming beheren+wissen). Geen backend-wijziging nodig, alle drie op
+  bestaande endpoints.
+
 ## Volgende stappen
 - [ ] alltrexx_mobile koppelen via `/api/mobiel/positie` (toestel-token)
 - [ ] Abonnement per toestel (gate op `actief`/token)
 - [ ] Treinen/auto's databron onderzoeken (issue #9)
 - [ ] Kpler-grant afwachten → KplerScheduler op OAuth ombouwen
 - [ ] Off-site kopie van de db-backups (bv. naar een bucket)
+- [ ] webpack-dev-server/svgo-alerts (dev-only) pas op te lossen via CRA-eject
+      of migratie naar Vite — geen haast, niet productie-relevant
