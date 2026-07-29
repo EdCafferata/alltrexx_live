@@ -149,6 +149,46 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
   zie hieronder) — dat vereist een aparte afweging (craco-patch / CRA-eject / Vite), nog
   geen keuze gemaakt.
 
+## Frontend Dependabot-alerts alsnog opgelost + nieuwe brace-expansion-CVE (29/30 juli 2026)
+- **`brace-expansion` (alert #36, high, CVE-2026-14257, GHSA-mh99-v99m-4gvg):** nieuw
+  ontdekt bij de dagelijkse check, ná de 21-juli-fixronde. Echte DoS (`expand()` bouwt
+  onbegrensd lange resultaten op, OOM-crash met een ~7,5 KB input) in de legitieme
+  `juliangruber/brace-expansion`-repo — geen supply-chain-hijack, geverifieerd via de
+  GHSA/CVE/officiële-commit-links. Alleen build-tooling (via `minimatch`, nooit in de
+  bundle). Override `^2.1.2` → `^5.0.8`. `npm run build` geverifieerd (zelfde bundle-
+  grootte: 129,49 kB JS / 11,25 kB CSS).
+- **De 7 al langer bekende dev-only alerts alsnog gefixed** (webpack-dev-server ×6,
+  svgo ×1) — na expliciet verzoek om ook deze op te lossen i.p.v. te accepteren.
+  **Aanpak: `@craco/craco@7.1.0`**, niet ejecten en niet naar Vite migreren.
+  - `frontend/craco.config.js` herbouwt react-scripts' devServer-config voor
+    webpack-dev-server v5 (react-scripts 5.0.1 zelf is nooit bijgewerkt):
+    - `onBeforeSetupMiddleware`/`onAfterSetupMiddleware` (verwijderd in v5) →
+      herbouwd met de vervangende `setupMiddlewares`-API.
+    - losse `https`-optie (verwijderd in v5) → geconverteerd naar de nieuwe
+      `server`-optie (`'https'` of `{type:'https',options:{cert,key}}`).
+    - `react-dev-utils/evalSourceMapMiddleware` (het "view compiled source"-linkje
+      in de foutoverlay) **bewust weggelaten**: leest `devServer._stats`, een veld
+      dat in webpack-dev-server v5 nergens meer bestaat (geverifieerd: 0 matches in
+      heel `lib/`) — was hoe dan ook allang een no-op/exception-op-elk-request
+      geworden omdat react-dev-utils nooit is bijgewerkt voor v5. Enige echte
+      impact: dat ene linkje in de dev-foutoverlay werkt niet meer; HMR, live
+      reload, de proxy naar de backend en de rest van de dev-server werken
+      gewoon door (getest: `npm start` boot, pagina laadt, bestand opslaan
+      triggert een recompile — wel merkbaar trager dan verwacht, maar dat is de
+      externe-schijf-locatie van dit project, geen gevolg van deze wijziging).
+  - Scripts (`package.json`) aangepast: `start`/`build`/`test` draaien nu via
+    `craco` i.p.v. rechtstreeks `react-scripts` (`eject` blijft `react-scripts
+    eject`, craco heeft daar geen eigen variant voor).
+  - Overrides toegevoegd: `webpack-dev-server: ^5.2.6`, `svgo: ^2.8.3`.
+    svgo/@svgr/plugin-svgo wordt hier sowieso nooit uitgevoerd (geen enkel
+    `.svg`-bestand wordt als React-component geïmporteerd in `src/`), dus de
+    v1→v2-APIbreuk in die keten raakt deze app niet.
+  - `npm run build` geverifieerd: exact dezelfde bundle-output als vóór de
+    migratie. `npm start` geverifieerd: boot zonder fouten, serveert de site,
+    proxy naar `localhost:8080` werkt, HMR-recompile bevestigd na file-edit.
+  - **Resultaat: `npm audit` → 0 vulnerabilities**, alle Dependabot-alerts in
+    `alltrexx_live` opgelost (GitHub-dashboard rescant na de push).
+
 ## Security & performance-fix (21 juli 2026)
 - **Alle Dependabot-alerts opgelost** (32 → 7 open, alle 7 bewust geaccepteerd):
   spring-boot-starter-parent → 3.2.12, h2 → 2.3.232, mysql-connector-j → 8.4.0,
@@ -184,5 +224,5 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
 - [ ] Treinen/auto's databron onderzoeken (issue #9)
 - [ ] Kpler-grant afwachten → KplerScheduler op OAuth ombouwen
 - [ ] Off-site kopie van de db-backups (bv. naar een bucket)
-- [ ] webpack-dev-server/svgo-alerts (dev-only) pas op te lossen via CRA-eject
-      of migratie naar Vite — geen haast, niet productie-relevant
+- [x] ~~webpack-dev-server/svgo-alerts (dev-only)~~ — opgelost via craco, zie
+      "Frontend Dependabot-alerts alsnog opgelost" (29/30 juli 2026)
