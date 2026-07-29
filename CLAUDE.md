@@ -129,6 +129,26 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
 # … einde: commit + push; werk CLAUDE.md / ONTWERP_KEUZES.md bij
 ```
 
+## JWT-secret naar .env voor lokale dev (29 juli 2026)
+- **Gevonden bij de dagelijkse security-check:** `backend/src/main/resources/application.properties`
+  (dev-profiel, H2) had een hardcoded `app.jwt.secret`, terwijl `application-prod.properties`
+  al netjes `${JWT_SECRET}` gebruikte. Statische secret in een publieke repo — laag risico
+  (alleen lokale H2 in-memory demodata) maar niet consistent met de prod-aanpak.
+- **Fix:** `me.paulschwarz:springboot3-dotenv:5.1.0` toegevoegd aan `backend/pom.xml` —
+  leest de root-`.env` (via `springdotenv.directory=../`, want IntelliJ/`mvn spring-boot:run`
+  draait met working dir = `backend/`) als extra PropertySource, zonder dat er iets in de
+  prod-Docker-flow verandert (env-vars komen daar al via docker-compose binnen; ontbreekt
+  `.env`, dan negeert de library dat gewoon — `springdotenv.ignoreIfMissing=true` is default).
+  `app.jwt.secret` is nu `${JWT_SECRET:AllTrexxLiveSecretKey2024ChangeInProduction!}` — pakt
+  de root-`.env`-waarde (dezelfde die docker-compose ook gebruikt), valt terug op de oude
+  hardcoded waarde als er geen `.env` is (bv. verse checkout zonder `.env`).
+  Geverifieerd met een tijdelijke debug-log + synthetische testwaarde in een losse temp-`.env`
+  (nooit de echte secret gelogd) dat de directory-override en de root-`.env` allebei werken;
+  debug-regel weer verwijderd na de test.
+- **Bewust niet meegenomen:** de 7 dev-only Dependabot-alerts (webpack-dev-server/svgo,
+  zie hieronder) — dat vereist een aparte afweging (craco-patch / CRA-eject / Vite), nog
+  geen keuze gemaakt.
+
 ## Security & performance-fix (21 juli 2026)
 - **Alle Dependabot-alerts opgelost** (32 → 7 open, alle 7 bewust geaccepteerd):
   spring-boot-starter-parent → 3.2.12, h2 → 2.3.232, mysql-connector-j → 8.4.0,
