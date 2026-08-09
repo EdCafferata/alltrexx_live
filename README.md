@@ -1,6 +1,6 @@
 # Alltrexx Live
 
-🔒 Laatste security check: 2026-08-08 23:08 CEST
+🔒 Laatste security check: 2026-08-09 23:09 CEST
 
 Realtime tracking-platform — live kaart op **https://alltrexx.live** voor boten ⛵,
 fietsen 🚴, auto's 🚗, vliegtuigen ✈️, personen 🚶 en treinen 🚆.
