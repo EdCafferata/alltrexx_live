@@ -65,10 +65,16 @@ services:
     extra_hosts:
       - "data.aishub.net:144.76.105.244"
       - "hexdb.io:104.21.0.112"
-      - "api.airplanes.live:104.26.2.20"
+      # ADS-B: airplanes.live sloot z'n gratis API (403 "contact us", ~12 aug 2026) → adsb.lol
+      # (zelfde /v2/point-API). Niet achter Cloudflare → meerdere ingress-IP's gepind.
+      - "api.adsb.lol:89.58.11.153"
+      - "api.adsb.lol:89.58.34.223"
+      - "api.adsb.lol:185.233.105.52"
     working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # ADS-B-bron overschreven: airplanes.live → adsb.lol (zelfde API-formaat).
+      APP_VLIEGTUIG_URL: https://api.adsb.lol/v2/point
       # JVM-tijdzone op NL → LocalDateTime.now() in posities = CEST i.p.v. UTC (was 2 uur terug).
       TZ: Europe/Amsterdam
       # AISHub-respons is ~2,6 MB (9000+ schepen); default WebClient-buffer = 256 KB →
