@@ -10,20 +10,23 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Haalt AIS-data op bij AISHub (gratis voor data-aanleveraars) voor een gebied,
- * en bewaart de posities van de boten die wij in de database hebben.
+ * Haalt AIS-data op bij AISHub (gratis voor data-aanleveraars) en bewaart de posities van
+ * de boten die wij in de database hebben.
  *
- * AISHub API: http://data.aishub.net/ws.php?username=..&format=1&output=json
- *             &latmin=..&latmax=..&lonmin=..&lonmax=..
- * Respons: [ {ERROR, USERNAME, RECORDS, ...}, [ {MMSI, LATITUDE, LONGITUDE, COG, SOG, NAME, ...}, .. ] ]
+ * <p>We vragen **direct op MMSI** i.p.v. een NL-gebied-query, zodat ook boten BUITEN NL
+ * worden opgehaald (overal waar een AISHub-ontvanger ze recent zag). Alle MMSI's in één
+ * request (getest: 74 MMSI's = ~740 tekens, prima):
  *
- * Configuratie via .env / application-prod.properties:
- *   app.aishub.username, app.aishub.url, app.aishub.latmin/latmax/lonmin/lonmax
- *   interval via app.scheduler.ais-interval-ms (15 min)
+ * <p>AISHub API: {@code http://data.aishub.net/ws.php?username=..&format=1&output=json&mmsi=<mmsi1>,<mmsi2>,..}
+ * <br>Respons: {@code [ {ERROR, USERNAME, RECORDS, ...}, [ {MMSI, LATITUDE, LONGITUDE, COG, SOG, NAME, ...}, .. ] ]}
+ *
+ * <p>Configuratie via .env / application-prod.properties:
+ *   app.aishub.username, app.aishub.url, interval via app.scheduler.ais-interval-ms (15 min)
  */
 @Component
 @RequiredArgsConstructor
@@ -35,10 +38,6 @@ public class AisHubScheduler {
 
     @Value("${app.aishub.username:}") private String username;
     @Value("${app.aishub.url:http://data.aishub.net/ws.php}") private String url;
-    @Value("${app.aishub.latmin:50.7}") private double latmin;
-    @Value("${app.aishub.latmax:53.7}") private double latmax;
-    @Value("${app.aishub.lonmin:3.2}")  private double lonmin;
-    @Value("${app.aishub.lonmax:7.3}")  private double lonmax;
 
     @Scheduled(fixedRateString = "${app.scheduler.ais-interval-ms:900000}")
     public void haalAisDataOp() {
@@ -57,13 +56,14 @@ public class AisHubScheduler {
             return;
         }
 
+        // Directe MMSI-query: alleen ONZE boten, waar dan ook (geen NL-gebied-limiet).
+        String mmsis = String.join(",", onzeMmsis);
         WebClient client = webClientBuilder.build();
         JsonNode root;
         try {
             root = client.get()
-                .uri(url + "?username={u}&format=1&output=json&compress=0"
-                        + "&latmin={a}&latmax={b}&lonmin={c}&lonmax={d}",
-                        username, latmin, latmax, lonmin, lonmax)
+                .uri(URI.create(url + "?username=" + username
+                        + "&format=1&output=json&compress=0&mmsi=" + mmsis))
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
@@ -99,7 +99,7 @@ public class AisHubScheduler {
             trackerService.werkScheepsgegevensBij(mmsi, bootnaam, null);
             opgeslagen++;
         }
-        log.info("AISHub: {} van onze {} boten geüpdatet ({} schepen in gebied)",
-                opgeslagen, onzeMmsis.size(), schepen.size());
+        log.info("AISHub: {} van onze {} boten geüpdatet (direct op MMSI)",
+                opgeslagen, onzeMmsis.size());
     }
 }

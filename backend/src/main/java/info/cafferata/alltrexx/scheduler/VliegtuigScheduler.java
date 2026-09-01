@@ -10,22 +10,27 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Haalt ADS-B-vliegtuigdata op bij airplanes.live (gratis, geen key) voor een gebied
- * en bewaart de posities van de vliegtuigen die wij in de database hebben.
+ * Haalt ADS-B-vliegtuigdata op bij adsb.lol en bewaart de posities van de vliegtuigen
+ * die wij in de database hebben.
  *
- * API: https://api.airplanes.live/v2/point/{lat}/{lon}/{radius_nm}
- * Respons: { "ac": [ { "hex", "flight", "r", "t", "desc", "lat", "lon", "gs", "track",
- *                      "alt_baro", ... }, .. ] }
+ * <p>Sinds ~12 aug 2026 sloot airplanes.live z'n gratis API (403 "contact us"); adsb.lol
+ * biedt dezelfde re-api. We vragen nu **direct op ICAO-hex** i.p.v. een gebied-query, zodat
+ * ook toestellen BUITEN een vast NL-gebied worden opgehaald (waar dan ook ter wereld). Eén
+ * call met alle hex'en van onze toestellen:
  *
- * Sleutel = ICAO 24-bit hex (zoals MMSI bij schepen). Vliegtuigen worden in het
+ * <p>API: {@code https://api.adsb.lol/v2/hex/<hex1>,<hex2>,...}
+ * <br>Respons: {@code { "ac": [ { "hex","flight","r","t","desc","lat","lon","gs","track","alt_baro", ... }, .. ] }}
+ *
+ * <p>Sleutel = ICAO 24-bit hex (zoals MMSI bij schepen). Vliegtuigen worden in het
  * beheerscherm toegevoegd met hun hex als externeId.
  *
- * Configuratie via application-prod.properties:
- *   app.vliegtuig.url, app.vliegtuig.lat/lon/radius, app.scheduler.adsb-interval-ms (15 min)
+ * <p>Configuratie via application-prod.properties:
+ *   app.vliegtuig.url (basis van het hex-endpoint), app.scheduler.adsb-interval-ms (15 min)
  */
 @Component
 @RequiredArgsConstructor
@@ -35,10 +40,7 @@ public class VliegtuigScheduler {
     private final TrackerService trackerService;
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${app.vliegtuig.url:https://api.airplanes.live/v2/point}") private String url;
-    @Value("${app.vliegtuig.lat:52.3}")    private double lat;
-    @Value("${app.vliegtuig.lon:5.3}")     private double lon;
-    @Value("${app.vliegtuig.radius:250}")  private int radius;   // nautische mijlen (max 250)
+    @Value("${app.vliegtuig.url:https://api.adsb.lol/v2/hex}") private String url;
 
     @Scheduled(fixedRateString = "${app.scheduler.adsb-interval-ms:900000}")
     public void haalVliegtuigDataOp() {
@@ -53,11 +55,13 @@ public class VliegtuigScheduler {
             return;
         }
 
+        // Directe hex-query: alleen ONZE toestellen, wereldwijd (geen gebied-limiet).
+        String hexen = String.join(",", onzeHex);
         WebClient client = webClientBuilder.build();
         JsonNode root;
         try {
             root = client.get()
-                .uri(url + "/{lat}/{lon}/{r}", lat, lon, radius)
+                .uri(URI.create(url + "/" + hexen))
                 .header("User-Agent", "Alltrexx/1.0 (+https://alltrexx.live)")
                 .retrieve()
                 .bodyToMono(JsonNode.class)
@@ -77,7 +81,7 @@ public class VliegtuigScheduler {
         for (JsonNode v : vliegtuigen) {
             String hex = v.path("hex").asText("").trim().toLowerCase();
             if (hex.isEmpty() || !onzeHex.contains(hex)) continue;
-            if (!v.hasNonNull("lat") || !v.hasNonNull("lon")) continue;  // geen positie
+            if (!v.hasNonNull("lat") || !v.hasNonNull("lon")) continue;  // geen positie (bv. aan de grond)
 
             double lat2     = v.path("lat").asDouble();
             double lon2     = v.path("lon").asDouble();
@@ -96,7 +100,7 @@ public class VliegtuigScheduler {
             trackerService.werkScheepsgegevensBij(hex, naam, null);
             opgeslagen++;
         }
-        log.info("ADS-B: {} van onze {} vliegtuigen geüpdatet ({} toestellen in gebied)",
-                opgeslagen, onzeHex.size(), vliegtuigen.size());
+        log.info("ADS-B: {} van onze {} vliegtuigen geüpdatet (direct op hex)",
+                opgeslagen, onzeHex.size());
     }
 }

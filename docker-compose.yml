@@ -73,8 +73,6 @@ services:
     working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      # ADS-B-bron overschreven: airplanes.live → adsb.lol (zelfde API-formaat).
-      APP_VLIEGTUIG_URL: https://api.adsb.lol/v2/point
       # JVM-tijdzone op NL → LocalDateTime.now() in posities = CEST i.p.v. UTC (was 2 uur terug).
       TZ: Europe/Amsterdam
       # AISHub-respons is ~2,6 MB (9000+ schepen); default WebClient-buffer = 256 KB →
