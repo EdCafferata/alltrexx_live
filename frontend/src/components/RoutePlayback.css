@@ -1,7 +1,7 @@
 .rp-balk {
   position: absolute;
   left: 50%;
-  bottom: 24px;
+  bottom: 76px;
   transform: translateX(-50%);
   z-index: 1000;
   width: min(440px, calc(100vw - 32px));
@@ -136,6 +136,6 @@
 }
 
 @media (max-width: 480px) {
-  .rp-balk { bottom: 14px; padding: 10px 12px 12px; }
+  .rp-balk { bottom: 66px; padding: 10px 12px 12px; }
   .rp-play { width: 40px; height: 40px; font-size: 16px; }
 }
