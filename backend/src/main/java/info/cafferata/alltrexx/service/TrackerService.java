@@ -170,4 +170,15 @@ public class TrackerService {
                 .toList())
             .orElse(List.of());
     }
+
+    /** Route van een tracker binnen een expliciet tijdvenster (begin/eind). */
+    public List<PositieDto> routeTussen(Long trackerId, LocalDateTime van, LocalDateTime tot) {
+        return trackerRepo.findById(trackerId)
+            .map(tracker -> positieRepo
+                .findByTrackerAndTijdstipBetweenOrderByTijdstip(tracker, van, tot)
+                .stream()
+                .map(PositieDto::van)
+                .toList())
+            .orElse(List.of());
+    }
 }

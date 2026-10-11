@@ -1,9 +1,11 @@
 .rp-balk {
   position: absolute;
   left: 50%;
-  bottom: 76px;
+  /* Zelfde hoogte als de type-/status-balk, maar hogere z-index → ligt er bij
+     het afspelen overheen (i.p.v. erboven). */
+  bottom: calc(72px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 1100;
   width: min(440px, calc(100vw - 32px));
   box-sizing: border-box;
   padding: 12px 14px 14px;
@@ -43,6 +45,31 @@
   cursor: pointer;
 }
 .rp-sluit:hover { background: rgba(255, 255, 255, 0.2); }
+
+.rp-periode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rp-cal { font-size: 13px; flex: none; }
+.rp-pijl { color: #8b95a1; font-size: 12px; flex: none; }
+.rp-datum {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f3f5f7;
+  font-size: 12px;
+  color-scheme: dark;
+}
+.rp-leeg {
+  font-size: 12px;
+  color: #c7ced6;
+  padding: 2px 0 6px;
+}
 
 .rp-regel {
   display: flex;

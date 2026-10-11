@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLiveKaart, getRoute } from '../services/api';
+import { getLiveKaart, getRoute, getRouteTussen } from '../services/api';
 import RoutePlayback from './RoutePlayback';
 import './TrackerKaart.css';
 
@@ -170,6 +170,9 @@ export default function TrackerKaart() {
   const [afIndex, setAfIndex] = useState(0);
   const [afSpelen, setAfSpelen] = useState(false);
   const [afSnelheid, setAfSnelheid] = useState(2);
+  // Begin/eind-datum van de afgespeelde route (YYYY-MM-DD, lokaal)
+  const [van, setVan] = useState('');
+  const [tot, setTot] = useState('');
 
   // Beginweergave (URL / vastgehouden / standaard) — eenmalig bepalen
   const startRef = useRef(null);
@@ -274,10 +277,28 @@ export default function TrackerKaart() {
     return () => clearInterval(interval);
   }, []);
 
-  // Route ophalen bij selectie van één tracker
+  // Standaard-datumvenster instellen bij selectie (of opruimen bij deselectie).
+  // De periode uit het type-menu (routeUur) bepaalt het beginvenster; de gebruiker
+  // kan daarna begin/eind fijnregelen in de afspeelbalk.
   useEffect(() => {
-    if (!geselecteerd) { setRoute([]); setRouteVol([]); setAfSpelen(false); return; }
-    getRoute(geselecteerd.trackerId, routeUur)
+    if (!geselecteerd) {
+      setRoute([]); setRouteVol([]); setAfSpelen(false); setVan(''); setTot('');
+      return;
+    }
+    const datumStr = (d) => {
+      const z = new Date(d);
+      z.setMinutes(z.getMinutes() - z.getTimezoneOffset());
+      return z.toISOString().slice(0, 10);
+    };
+    const nu = new Date();
+    setTot(datumStr(nu));
+    setVan(datumStr(new Date(nu.getTime() - routeUur * 3600 * 1000)));
+  }, [geselecteerd, routeUur]);
+
+  // Route ophalen voor het gekozen datumvenster (begin/eind)
+  useEffect(() => {
+    if (!geselecteerd || !van || !tot) return;
+    getRouteTussen(geselecteerd.trackerId, `${van}T00:00:00`, `${tot}T23:59:59`)
       .then(data => {
         setRoute(data.map(p => [p.lat, p.lon]));
         setRouteVol(data);
@@ -285,7 +306,7 @@ export default function TrackerKaart() {
         setAfSpelen(false);
       })
       .catch(console.error);
-  }, [geselecteerd, routeUur]);
+  }, [geselecteerd, van, tot]);
 
   // Afspeel-timer: schuif de index op zolang er wordt afgespeeld
   useEffect(() => {
@@ -432,7 +453,7 @@ export default function TrackerKaart() {
       </MapContainer>
 
       {/* ── Route-playback balk ("tijdreis") ──────────────────────────────── */}
-      {geselecteerd && routeVol.length > 1 && (
+      {geselecteerd && (
         <RoutePlayback
           route={routeVol}
           naam={geselecteerd.trackerNaam}
@@ -440,10 +461,13 @@ export default function TrackerKaart() {
           index={afIndex}
           spelen={afSpelen}
           snelheid={afSnelheid}
+          van={van}
+          tot={tot}
           onSpeel={startAfspelen}
           onPauze={() => setAfSpelen(false)}
           onSeek={(i) => { setAfSpelen(false); setAfIndex(i); }}
           onSnelheid={setAfSnelheid}
+          onPeriode={(v, t) => { setAfSpelen(false); if (v) setVan(v); if (t) setTot(t); }}
           onSluit={() => setGeselecteerd(null)}
         />
       )}

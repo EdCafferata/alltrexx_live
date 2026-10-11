@@ -4,9 +4,11 @@ import info.cafferata.alltrexx.dto.PositieDto;
 import info.cafferata.alltrexx.model.TrackerType;
 import info.cafferata.alltrexx.service.TrackerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -49,13 +51,21 @@ public class KaartController {
     }
 
     /**
-     * Route van een tracker over de afgelopen X uur.
-     * GET /api/kaart/route/1?uur=24
+     * Route van een tracker. Standaard de afgelopen X uur
+     * ({@code GET /api/kaart/route/1?uur=24}), of een expliciet tijdvenster met
+     * begin/eind ({@code GET /api/kaart/route/1?van=2026-10-01T00:00:00&tot=2026-10-07T23:59:59}).
      */
     @GetMapping("/route/{trackerId}")
     public ResponseEntity<List<PositieDto>> route(
             @PathVariable Long trackerId,
-            @RequestParam(defaultValue = "24") int uur) {
+            @RequestParam(defaultValue = "24") int uur,
+            @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime van,
+            @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime tot) {
+        if (van != null && tot != null) {
+            return ResponseEntity.ok(trackerService.routeTussen(trackerId, van, tot));
+        }
         return ResponseEntity.ok(trackerService.route(trackerId, uur));
     }
 }
