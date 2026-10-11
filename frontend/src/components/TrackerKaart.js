@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap, u
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getLiveKaart, getRoute } from '../services/api';
+import RoutePlayback from './RoutePlayback';
 import './TrackerKaart.css';
 
 // ── De vijf typen — zelfde vijf opties als in de mobile app (eerste-gebruik scherm) ──
@@ -164,6 +165,11 @@ export default function TrackerKaart() {
   const [posities, setPosities] = useState([]);
   const [geselecteerd, setGeselecteerd] = useState(null);
   const [route, setRoute] = useState([]);
+  // Route-playback ("tijdreis"): volledige posities + afspeelstatus van de selectie
+  const [routeVol, setRouteVol] = useState([]);
+  const [afIndex, setAfIndex] = useState(0);
+  const [afSpelen, setAfSpelen] = useState(false);
+  const [afSnelheid, setAfSnelheid] = useState(2);
 
   // Beginweergave (URL / vastgehouden / standaard) — eenmalig bepalen
   const startRef = useRef(null);
@@ -270,11 +276,35 @@ export default function TrackerKaart() {
 
   // Route ophalen bij selectie van één tracker
   useEffect(() => {
-    if (!geselecteerd) { setRoute([]); return; }
+    if (!geselecteerd) { setRoute([]); setRouteVol([]); setAfSpelen(false); return; }
     getRoute(geselecteerd.trackerId, routeUur)
-      .then(data => setRoute(data.map(p => [p.lat, p.lon])))
+      .then(data => {
+        setRoute(data.map(p => [p.lat, p.lon]));
+        setRouteVol(data);
+        setAfIndex(Math.max(0, data.length - 1));
+        setAfSpelen(false);
+      })
       .catch(console.error);
   }, [geselecteerd, routeUur]);
+
+  // Afspeel-timer: schuif de index op zolang er wordt afgespeeld
+  useEffect(() => {
+    if (!afSpelen || routeVol.length < 2) return;
+    const interval = Math.max(60, Math.round(500 / afSnelheid));
+    const id = setInterval(() => {
+      setAfIndex(i => {
+        if (i >= routeVol.length - 1) { setAfSpelen(false); return i; }
+        return i + 1;
+      });
+    }, interval);
+    return () => clearInterval(id);
+  }, [afSpelen, afSnelheid, routeVol]);
+
+  // Start afspelen: bij het eind eerst terug naar het begin
+  const startAfspelen = () => {
+    setAfIndex(i => (i >= routeVol.length - 1 ? 0 : i));
+    setAfSpelen(true);
+  };
 
   // Routes per type ophalen wanneer ingeschakeld
   const positiesRef = useRef(posities);
@@ -375,15 +405,48 @@ export default function TrackerKaart() {
           )
         )}
 
-        {/* Route van geselecteerde tracker */}
-        {route.length > 1 && (
-          <Polyline
-            positions={route}
-            color={geselecteerd ? ICOON_CONFIG[geselecteerd.type]?.kleur : '#333'}
-            weight={4} opacity={0.9}
-          />
-        )}
+        {/* Route van geselecteerde tracker — met afspeel-animatie ("tijdreis") */}
+        {routeVol.length > 1 && geselecteerd && (() => {
+          const kleur = ICOON_CONFIG[geselecteerd.type]?.kleur || '#333';
+          const afgelegd = route.slice(0, afIndex + 1);
+          const punt = routeVol[Math.min(afIndex, routeVol.length - 1)];
+          return (
+            <>
+              {/* Volledige route vaag (waar 't nog heen gaat) */}
+              <Polyline positions={route} color={kleur} weight={3} opacity={0.3} dashArray="6 8" />
+              {/* Afgelegd deel fel */}
+              {afgelegd.length > 1 && (
+                <Polyline positions={afgelegd} color={kleur} weight={5} opacity={0.95} />
+              )}
+              {/* Bewegende marker op de huidige positie */}
+              {punt && (
+                <Marker
+                  position={[punt.lat, punt.lon]}
+                  icon={maakIcoon(geselecteerd.type, punt.koers)}
+                  zIndexOffset={1000}
+                />
+              )}
+            </>
+          );
+        })()}
       </MapContainer>
+
+      {/* ── Route-playback balk ("tijdreis") ──────────────────────────────── */}
+      {geselecteerd && routeVol.length > 1 && (
+        <RoutePlayback
+          route={routeVol}
+          naam={geselecteerd.trackerNaam}
+          emoji={ICOON_CONFIG[geselecteerd.type]?.emoji || '📍'}
+          index={afIndex}
+          spelen={afSpelen}
+          snelheid={afSnelheid}
+          onSpeel={startAfspelen}
+          onPauze={() => setAfSpelen(false)}
+          onSeek={(i) => { setAfSpelen(false); setAfIndex(i); }}
+          onSnelheid={setAfSnelheid}
+          onSluit={() => setGeselecteerd(null)}
+        />
+      )}
 
       {/* ── Logo linksboven ───────────────────────────────────────────────── */}
       <a className="kaart-logo" href="https://alltrexx.live" title="Alltrexx Live">
