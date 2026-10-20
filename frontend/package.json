@@ -28,7 +28,9 @@
     "postcss": "^8.5.23",
     "resolve-url-loader": {
       "postcss": "^8.5.23"
-    }
+    },
+    "postcss-selector-parser": "^7.1.6",
+    "braces": "file:./vendor/braces"
   },
   "scripts": {
     "start": "craco start",
@@ -55,6 +57,7 @@
   "proxy": "http://localhost:8080",
   "homepage": ".",
   "devDependencies": {
-    "@craco/craco": "^7.1.0"
+    "@craco/craco": "^7.1.0",
+    "fill-range": "^7.1.1"
   }
 }
