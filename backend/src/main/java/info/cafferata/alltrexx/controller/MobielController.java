@@ -1,13 +1,16 @@
 package info.cafferata.alltrexx.controller;
 
 import info.cafferata.alltrexx.model.Positie;
+import info.cafferata.alltrexx.security.RateLimiter;
 import info.cafferata.alltrexx.service.MobielService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -25,6 +28,7 @@ import java.util.Map;
 public class MobielController {
 
     private final MobielService mobielService;
+    private final RateLimiter rateLimiter;
 
     @PostMapping("/positie")
     public ResponseEntity<Positie> nieuwePositie(@RequestBody Map<String, Object> body) {
@@ -46,6 +50,31 @@ public class MobielController {
             return ResponseEntity.ok(opgeslagen);
         } catch (IllegalArgumentException e) {
             // onbekende of inactieve token → 403 (toestel niet (meer) geactiveerd/geabonneerd)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
+    /**
+     * In-app verwijderen van tracker + alle posities (App Store 5.1.1(v)).
+     * POST /api/mobiel/verwijder of DELETE /api/mobiel/tracker, body { "token": "..." }
+     * (of header X-Tracker-Token). Alleen de token-houder wist zijn eigen tracker.
+     * Per IP gelimiteerd tegen token-raden.
+     */
+    @RequestMapping(value = {"/verwijder", "/tracker"}, method = {RequestMethod.POST, RequestMethod.DELETE})
+    public ResponseEntity<Map<String, Object>> verwijder(@RequestBody(required = false) Map<String, Object> body,
+                                                         @RequestHeader(value = "X-Tracker-Token", required = false) String headerToken,
+                                                         HttpServletRequest request) {
+        if (!rateLimiter.probeer("verwijder:ip:" + RateLimiter.clientIp(request), 20, Duration.ofHours(1))) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Te veel verzoeken — probeer het later opnieuw");
+        }
+        String token = body != null && body.get("token") instanceof String s ? s : headerToken;
+        if (token == null || token.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token ontbreekt");
+        }
+        try {
+            long posities = mobielService.verwijderViaToken(token.trim());
+            return ResponseEntity.ok(Map.of("verwijderd", true, "posities", posities));
+        } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }

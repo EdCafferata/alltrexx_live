@@ -41,4 +41,20 @@ public class MobielService {
             .build();
         return positieRepo.save(positie);
     }
+
+    /**
+     * In-app dataverwijdering (App Store 5.1.1(v)): wis de tracker die bij deze
+     * toestel-token hoort, inclusief al zijn posities. Alleen de houder van de token
+     * kan dit; onbekende token → IllegalArgumentException.
+     *
+     * @return het aantal verwijderde posities
+     */
+    @Transactional
+    public long verwijderViaToken(String token) {
+        Tracker tracker = trackerRepo.findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Onbekende token"));
+        long posities = positieRepo.deleteByTracker(tracker);
+        trackerRepo.delete(tracker);
+        return posities;
+    }
 }

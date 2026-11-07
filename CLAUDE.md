@@ -60,7 +60,8 @@ docker-compose.yml · database/init.sql
 | GET/POST | `/api/admin/trackers` · DELETE `/{id}` · DELETE `/{id}/posities` | X-Admin-Key |
 | GET | `/api/admin/vliegtuig/icao?reg=` | X-Admin-Key |
 | POST | `/api/mobiel/positie` `{token,lat,lon,snelheid?,koers?,hoogte?}` | toestel-token |
-| POST | `/api/sleutel/gratis` `{naam?,type?}` → tracker met UUID-token (FREE) | nee |
+| POST/DELETE | `/api/mobiel/verwijder` · `/api/mobiel/tracker` `{token}` → wist eigen tracker + posities (5.1.1(v)) | toestel-token |
+| POST | `/api/sleutel/gratis` `{naam?,type?}` → tracker met UUID-token (FREE); rate-limit 5/IP/uur + 200/uur totaal → 429 | nee |
 | POST | `/api/gebruikers/aanmelden` `{externeId,naam?,beheerder?}` (upsert) | nee |
 | GET | `/api/gebruikers` · PUT `/{id}/abonnement` `{abonnement}` · DELETE `/{id}` | X-Admin-Key |
 | POST | `/api/trackers/positie` | JWT (legacy) |
@@ -217,6 +218,17 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
   ⚙️ Instellingen (`Instellingen.js`, puur lokaal — admin-key/app-sleutel/
   toestemming beheren+wissen). Geen backend-wijziging nodig, alle drie op
   bestaande endpoints.
+
+## Rate-limiting + in-app verwijderen (7 nov 2026, issues #27/#25)
+- `security/RateLimiter` = in-memory sliding window (geen dependency; één container).
+  Client-IP via `X-Real-IP` — de Synology reverse proxy zet die op `$remote_addr`
+  (geverifieerd in de nginx-config), dus niet door de client te vervalsen.
+- `POST /api/sleutel/gratis`: 5/IP/uur + 200/uur globaal (`app.sleutel.max-per-ip-per-uur`,
+  `app.sleutel.max-totaal-per-uur`); naam afgekapt op 100 tekens.
+- `POST /api/mobiel/verwijder` (wat alltrexx_mobile aanroept) én `DELETE /api/mobiel/tracker`,
+  body `{token}` of header `X-Tracker-Token` → wist tracker + alle posities; 20/IP/uur.
+- Gedeployed + live geverifieerd; oude jar staat als `alltrexx-live-1.0.0.jar.bak-20261107`
+  in de NAS-target-map. TEST-trackers 216/217 via admin-API verwijderd.
 
 ## Volgende stappen
 - [ ] alltrexx_mobile koppelen via `/api/mobiel/positie` (toestel-token)
