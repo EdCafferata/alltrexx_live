@@ -22,7 +22,7 @@ import java.util.Map;
  *   → maakt een GRATIS tracker-sleutel (token) aan en geeft 'm terug.
  *
  * Misbruikbescherming: per client-IP max {@code app.sleutel.max-per-ip-per-uur}
- * (standaard 5) en globaal max {@code app.sleutel.max-totaal-per-uur} (standaard 200)
+ * (standaard 7) en globaal max {@code app.sleutel.max-totaal-per-uur} (standaard 200)
  * nieuwe sleutels per uur; daarboven HTTP 429.
  *
  * Pro-sleutels (betaald) volgen later — in de UI nu nog "binnenkort".
@@ -38,7 +38,7 @@ public class SleutelController {
     private final SleutelService sleutelService;
     private final RateLimiter rateLimiter;
 
-    @Value("${app.sleutel.max-per-ip-per-uur:5}")
+    @Value("${app.sleutel.max-per-ip-per-uur:7}")
     private int maxPerIpPerUur;
 
     @Value("${app.sleutel.max-totaal-per-uur:200}")
