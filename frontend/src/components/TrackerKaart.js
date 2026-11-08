@@ -137,14 +137,18 @@ function GaNaarEigenLocatie({ doel }) {
 // vastgehouden weergave uit localStorage, anders heel Nederland.
 function leesStartConfig() {
   const p = new URLSearchParams(window.location.search);
+  // ?laag=<preset>&types=<TYPE> werkt ook zonder lat/lon (de app-live-kaart geeft die
+  // mee op basis van het gekozen tracker-type: persoon → wandel, boot → boot, enz.).
+  const urlPreset = p.get('laag');
+  const urlTypes = p.get('types') ? p.get('types').split(',') : null;
   const lat = parseFloat(p.get('lat'));
   const lon = parseFloat(p.get('lon'));
   const z = parseInt(p.get('z'), 10);
   if (!isNaN(lat) && !isNaN(lon)) {
     return {
       lat, lon, zoom: !isNaN(z) ? z : 12,
-      preset: p.get('laag') || 'boot',
-      types: p.get('types') ? p.get('types').split(',') : null,
+      preset: urlPreset || 'boot',
+      types: urlTypes,
       pinned: false,
       geoZoeken: false,
     };
@@ -152,13 +156,14 @@ function leesStartConfig() {
   try {
     const opg = JSON.parse(localStorage.getItem('alltrexx-view') || 'null');
     if (localStorage.getItem('alltrexx-view-pin') === '1' && opg) {
-      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: 'boot', types: null, pinned: true, geoZoeken: false };
+      return { lat: opg.lat, lon: opg.lon, zoom: opg.zoom, preset: urlPreset || 'boot', types: urlTypes, pinned: true, geoZoeken: false };
     }
   } catch { /* negeren */ }
-  // Standaard-start: Boot-kaart, alleen boten zichtbaar + routes aan. Geen URL-link en
-  // geen vastgehouden weergave → geoZoeken geeft aan dat we de locatie van het toestel
-  // mogen proberen op te halen (zie GeoLocatieOphalen), met heel Nederland als terugval.
-  return { lat: 52.5, lon: 5.0, zoom: 7, preset: 'boot', types: null, pinned: false, geoZoeken: true };
+  // Standaard-start: Boot-kaart, alleen boten zichtbaar + routes aan. Een ?laag/?types
+  // (bijv. vanuit de app-live-kaart) overschrijft die standaard. Geen URL-link en geen
+  // vastgehouden weergave → geoZoeken mag de locatie van het toestel ophalen, met heel
+  // Nederland als terugval.
+  return { lat: 52.5, lon: 5.0, zoom: 7, preset: urlPreset || 'boot', types: urlTypes, pinned: false, geoZoeken: true };
 }
 
 export default function TrackerKaart() {
