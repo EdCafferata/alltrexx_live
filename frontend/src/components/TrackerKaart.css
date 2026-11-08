@@ -468,7 +468,7 @@
   height: 56px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  border: none;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .kaart-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
