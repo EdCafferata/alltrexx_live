@@ -70,6 +70,23 @@
   background: #0D47A1;
 }
 
+.meld-knop {
+  margin-top: 6px;
+  padding: 3px 8px;
+  background: transparent;
+  color: #9a4a4a;
+  border: 1px solid #d9b3b3;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  width: 100%;
+}
+
+.meld-knop:hover {
+  background: #fbeaea;
+  color: #7a2e2e;
+}
+
 /* ── Lagen-paneel ───────────────────────────────────────── */
 .lagen-knop {
   position: absolute;

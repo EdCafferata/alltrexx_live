@@ -2,9 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLiveKaart, getRoute, getRouteTussen } from '../services/api';
+import { getLiveKaart, getRoute, getRouteTussen, meldTracker } from '../services/api';
 import RoutePlayback from './RoutePlayback';
 import './TrackerKaart.css';
+
+// Meld een aanstootgevende tracker-naam (user-generated content). De kaart maskeert
+// een naam automatisch zodra die genoeg meldingen heeft; een beheerder beoordeelt 'm.
+async function meldNaam(pos) {
+  if (!pos || !pos.trackerId) return;
+  if (!window.confirm(`Deze naam ("${pos.trackerNaam}") melden als aanstootgevend?`)) return;
+  const reden = window.prompt('Toelichting (optioneel):', '') || undefined;
+  try {
+    await meldTracker(pos.trackerId, reden);
+    window.alert('Bedankt, we bekijken je melding.');
+  } catch (e) {
+    window.alert('Melden lukte niet — probeer het later opnieuw.');
+  }
+}
 
 // ── De vijf typen — zelfde vijf opties als in de mobile app (eerste-gebruik scherm) ──
 // Volgorde = langzaamste boven, snelste onder (geldt ook voor de dock links)
@@ -407,6 +421,13 @@ export default function TrackerKaart() {
                         {geselecteerd?.trackerId === pos.trackerId
                           ? '✕ Route verbergen'
                           : `📍 Route tonen (${routeLabel})`}
+                      </button>
+                      <button
+                        className="meld-knop"
+                        title="Meld een aanstootgevende naam"
+                        onClick={() => meldNaam(pos)}
+                      >
+                        ⚠️ Naam melden
                       </button>
                     </div>
                   </Popup>

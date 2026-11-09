@@ -24,6 +24,10 @@ export const getBronnen = () => api.get('/kaart/bronnen').then(r => r.data);
 export const maakGratisSleutel = (naam, type = 'PERSON') =>
   api.post('/sleutel/gratis', { naam, type }).then(r => r.data);
 
+/** Meld een aanstootgevende tracker-naam (user-generated content) — publiek, rate-limited */
+export const meldTracker = (trackerId, reden) =>
+  api.post('/meld', { trackerId, reden }).then(r => r.data);
+
 /** Meld de ingelogde gebruiker aan bij de backend (upsert) → geeft abonnement terug */
 export const aanmeldenGebruiker = (externeId, naam, beheerder) =>
   api.post('/gebruikers/aanmelden', { externeId, naam, beheerder }).then(r => r.data);

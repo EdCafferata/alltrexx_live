@@ -3,6 +3,7 @@ package info.cafferata.alltrexx.controller;
 import info.cafferata.alltrexx.model.Tracker;
 import info.cafferata.alltrexx.model.TrackerType;
 import info.cafferata.alltrexx.security.RateLimiter;
+import info.cafferata.alltrexx.service.NaamFilter;
 import info.cafferata.alltrexx.service.SleutelService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class SleutelController {
 
     private final SleutelService sleutelService;
     private final RateLimiter rateLimiter;
+    private final NaamFilter naamFilter;
 
     @Value("${app.sleutel.max-per-ip-per-uur:7}")
     private int maxPerIpPerUur;
@@ -56,6 +58,11 @@ public class SleutelController {
         String naam = body != null ? body.get("naam") : null;
         if (naam != null && naam.length() > 100) {
             naam = naam.substring(0, 100);
+        }
+        // Inhoudsfilter (App Store Guideline 1.2): weiger aanstootgevende namen.
+        if (!naamFilter.isToegestaan(naam)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Deze naam is niet toegestaan. Kies een nettere naam.");
         }
         TrackerType type = null;
         if (body != null && body.get("type") != null) {
