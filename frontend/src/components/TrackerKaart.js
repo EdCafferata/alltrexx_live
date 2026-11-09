@@ -6,20 +6,6 @@ import { getLiveKaart, getRoute, getRouteTussen, meldTracker } from '../services
 import RoutePlayback from './RoutePlayback';
 import './TrackerKaart.css';
 
-// Meld een aanstootgevende tracker-naam (user-generated content). De kaart maskeert
-// een naam automatisch zodra die genoeg meldingen heeft; een beheerder beoordeelt 'm.
-async function meldNaam(pos) {
-  if (!pos || !pos.trackerId) return;
-  if (!window.confirm(`Deze naam ("${pos.trackerNaam}") melden als aanstootgevend?`)) return;
-  const reden = window.prompt('Toelichting (optioneel):', '') || undefined;
-  try {
-    await meldTracker(pos.trackerId, reden);
-    window.alert('Bedankt, we bekijken je melding.');
-  } catch (e) {
-    window.alert('Melden lukte niet — probeer het later opnieuw.');
-  }
-}
-
 // ── De vijf typen — zelfde vijf opties als in de mobile app (eerste-gebruik scherm) ──
 // Volgorde = langzaamste boven, snelste onder (geldt ook voor de dock links)
 export const ICOON_CONFIG = {
@@ -241,6 +227,25 @@ export default function TrackerKaart() {
     }]))
   );
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
+  const [gemeld, setGemeld] = useState({}); // { trackerId: 'confirm'|'bezig'|'ok'|'fout' }
+
+  // Meld een aanstootgevende tracker-naam. Bevestiging + feedback gebeuren in de knop
+  // zelf (geen window.confirm/alert — die tonen niets in de WKWebView van de app).
+  // Eerste tik vraagt bevestiging, tweede tik verstuurt de melding.
+  const meldNaam = async (pos) => {
+    if (!pos || !pos.trackerId) return;
+    const id = pos.trackerId;
+    const stand = gemeld[id];
+    if (stand === 'ok' || stand === 'bezig') return;
+    if (stand !== 'confirm') { setGemeld(g => ({ ...g, [id]: 'confirm' })); return; }
+    setGemeld(g => ({ ...g, [id]: 'bezig' }));
+    try {
+      await meldTracker(id);
+      setGemeld(g => ({ ...g, [id]: 'ok' }));
+    } catch (e) {
+      setGemeld(g => ({ ...g, [id]: 'fout' }));
+    }
+  };
   const [openPaneel, setOpenPaneel] = useState(null); // welk FAB-menu open is
   const [zoomDoel, setZoomDoel] = useState(null);
   const [fabZoek, setFabZoek] = useState(''); // zoekterm in het open FAB-menu
@@ -425,9 +430,14 @@ export default function TrackerKaart() {
                       <button
                         className="meld-knop"
                         title="Meld een aanstootgevende naam"
+                        disabled={['ok', 'bezig'].includes(gemeld[pos.trackerId])}
                         onClick={() => meldNaam(pos)}
                       >
-                        ⚠️ Naam melden
+                        {gemeld[pos.trackerId] === 'confirm' ? '⚠️ Tik nogmaals om te melden'
+                          : gemeld[pos.trackerId] === 'bezig' ? '… melden'
+                          : gemeld[pos.trackerId] === 'ok' ? '✓ Gemeld — bedankt'
+                          : gemeld[pos.trackerId] === 'fout' ? '⚠️ Mislukt — opnieuw'
+                          : '⚠️ Naam melden'}
                       </button>
                     </div>
                   </Popup>
