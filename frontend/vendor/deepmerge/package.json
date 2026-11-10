@@ -1,0 +1,23 @@
+{
+  "name": "deepmerge",
+  "description": "deepmerge 4.3.1 + prototype-poisoning fix (GHSA-gcqx-w48m-w2h4), vendored by alltrexx_live until upstream ships a fix. A library for deep (recursive) merging of Javascript objects",
+  "keywords": [
+    "merge",
+    "deep",
+    "extend",
+    "copy",
+    "clone",
+    "recursive"
+  ],
+  "version": "4.3.2-alltrexx.1",
+  "homepage": "https://github.com/TehShrike/deepmerge",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TehShrike/deepmerge.git"
+  },
+  "main": "dist/cjs.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "license": "MIT"
+}
