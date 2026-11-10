@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, LayerGroup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLiveKaart, getRoute, getRouteTussen } from '../services/api';
+import { getLiveKaart, getRoute, getRouteTussen, meldTracker } from '../services/api';
 import RoutePlayback from './RoutePlayback';
 import './TrackerKaart.css';
 
@@ -227,6 +227,25 @@ export default function TrackerKaart() {
     }]))
   );
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
+  const [gemeld, setGemeld] = useState({}); // { trackerId: 'confirm'|'bezig'|'ok'|'fout' }
+
+  // Meld een aanstootgevende tracker-naam. Bevestiging + feedback gebeuren in de knop
+  // zelf (geen window.confirm/alert — die tonen niets in de WKWebView van de app).
+  // Eerste tik vraagt bevestiging, tweede tik verstuurt de melding.
+  const meldNaam = async (pos) => {
+    if (!pos || !pos.trackerId) return;
+    const id = pos.trackerId;
+    const stand = gemeld[id];
+    if (stand === 'ok' || stand === 'bezig') return;
+    if (stand !== 'confirm') { setGemeld(g => ({ ...g, [id]: 'confirm' })); return; }
+    setGemeld(g => ({ ...g, [id]: 'bezig' }));
+    try {
+      await meldTracker(id);
+      setGemeld(g => ({ ...g, [id]: 'ok' }));
+    } catch (e) {
+      setGemeld(g => ({ ...g, [id]: 'fout' }));
+    }
+  };
   const [openPaneel, setOpenPaneel] = useState(null); // welk FAB-menu open is
   const [zoomDoel, setZoomDoel] = useState(null);
   const [fabZoek, setFabZoek] = useState(''); // zoekterm in het open FAB-menu
@@ -407,6 +426,18 @@ export default function TrackerKaart() {
                         {geselecteerd?.trackerId === pos.trackerId
                           ? '✕ Route verbergen'
                           : `📍 Route tonen (${routeLabel})`}
+                      </button>
+                      <button
+                        className="meld-knop"
+                        title="Meld een aanstootgevende naam"
+                        disabled={['ok', 'bezig'].includes(gemeld[pos.trackerId])}
+                        onClick={() => meldNaam(pos)}
+                      >
+                        {gemeld[pos.trackerId] === 'confirm' ? '⚠️ Tik nogmaals om te melden'
+                          : gemeld[pos.trackerId] === 'bezig' ? '… melden'
+                          : gemeld[pos.trackerId] === 'ok' ? '✓ Gemeld — bedankt'
+                          : gemeld[pos.trackerId] === 'fout' ? '⚠️ Mislukt — opnieuw'
+                          : '⚠️ Naam melden'}
                       </button>
                     </div>
                   </Popup>

@@ -5,12 +5,15 @@ import info.cafferata.alltrexx.model.*;
 import info.cafferata.alltrexx.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -20,6 +23,11 @@ public class TrackerService {
 
     private final TrackerRepository trackerRepo;
     private final PositieRepository positieRepo;
+    private final MeldingRepository meldingRepo;
+
+    /** Aantal openstaande meldingen waarboven een tracker-naam op de kaart wordt gemaskeerd. */
+    @Value("${app.meld.verberg-drempel:3}")
+    private int verbergDrempel;
 
     // ── Trackers ──────────────────────────────────────────────────────────────
 
@@ -141,18 +149,35 @@ public class TrackerService {
 
     /** Alle laatste posities voor de live kaart */
     public List<PositieDto> liveKaart() {
-        return positieRepo.findLaatstePositiesActieveTrackers()
+        return maskeerGemeldeNamen(positieRepo.findLaatstePositiesActieveTrackers()
             .stream()
             .map(PositieDto::van)
-            .toList();
+            .toList());
     }
 
     /** Laatste posities gefilterd op type */
     public List<PositieDto> liveKaartPerType(TrackerType type) {
-        return positieRepo.findLaatstePositiesPerType(type.name())
+        return maskeerGemeldeNamen(positieRepo.findLaatstePositiesPerType(type.name())
             .stream()
             .map(PositieDto::van)
-            .toList();
+            .toList());
+    }
+
+    /**
+     * Maskeer de zelfgekozen naam van trackers met ≥ {@code verbergDrempel} openstaande
+     * meldingen (App Store Guideline 1.2). Eén goedkope aggregatie over de kleine
+     * meldingen-tabel; de positie/route blijft zichtbaar, alleen de naam wordt vervangen.
+     */
+    private List<PositieDto> maskeerGemeldeNamen(List<PositieDto> posities) {
+        if (posities.isEmpty()) return posities;
+        Set<Long> verborgen = new HashSet<>(meldingRepo.trackerIdsVanafDrempel(verbergDrempel));
+        if (verborgen.isEmpty()) return posities;
+        for (PositieDto dto : posities) {
+            if (dto.getTrackerId() != null && verborgen.contains(dto.getTrackerId())) {
+                dto.setTrackerNaam("⚠️ Gemelde naam");
+            }
+        }
+        return posities;
     }
 
     /** Laatste update + aantal per databron (voor de bron-ticker) */

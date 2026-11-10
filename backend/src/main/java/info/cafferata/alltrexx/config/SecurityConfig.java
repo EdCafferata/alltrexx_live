@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").permitAll()   // beheer — key in controller (X-Admin-Key)
                 .requestMatchers("/api/mobiel/**").permitAll()  // mobiele app — per-toestel token in controller
                 .requestMatchers("/api/sleutel/**").permitAll() // self-service gratis inlogsleutel
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/meld").permitAll() // aanstootgevende naam melden (publiek)
                 .requestMatchers("/api/gebruikers/**").permitAll() // aanmelden publiek; beheer via X-Admin-Key
                 .requestMatchers("/actuator/health").permitAll()
                 // ── Overige API vereist authenticatie ─────────────────────
