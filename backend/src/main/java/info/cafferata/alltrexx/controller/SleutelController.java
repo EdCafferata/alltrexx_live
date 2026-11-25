@@ -72,6 +72,14 @@ public class SleutelController {
                 // onbekend type → service kiest PERSON
             }
         }
-        return ResponseEntity.ok(sleutelService.maakGratisSleutel(naam, type));
+        // Optionele herkomst-app (bijv. "rnh"); alleen korte a-z/0-9/-, anders genegeerd.
+        String bron = body != null ? body.get("bron") : null;
+        if (bron != null) {
+            bron = bron.trim().toLowerCase();
+            if (!bron.matches("[a-z0-9-]{1,20}")) {
+                bron = null;
+            }
+        }
+        return ResponseEntity.ok(sleutelService.maakGratisSleutel(naam, type, bron));
     }
 }

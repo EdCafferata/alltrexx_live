@@ -135,8 +135,15 @@ function GaNaarEigenLocatie({ doel }) {
 
 // Beginweergave bepalen: eerst uit de URL (?lat&lon&z&laag&types), anders een
 // vastgehouden weergave uit localStorage, anders heel Nederland.
+// Ronde om Noord-Holland: kaartuitsnede (IJmuiden – Den Helder – IJsselmeer – Amsterdam)
+const RNH_GEBIED = [[52.36, 4.45], [53.02, 5.45]];
+
 function leesStartConfig() {
   const p = new URLSearchParams(window.location.search);
+  // ?rnh=1 of ?bron=rnh → alleen boten uit de RNH Tracker-app, zeekaart, Noord-Holland
+  if (p.get('rnh') === '1' || (p.get('bron') || '').toLowerCase() === 'rnh') {
+    return { lat: 52.69, lon: 4.95, zoom: 9, preset: 'boot', types: ['BOAT'], rnh: true, pinned: false, geoZoeken: false };
+  }
   // ?laag=<preset>&types=<TYPE> werkt ook zonder lat/lon (de app-live-kaart geeft die
   // mee op basis van het gekozen tracker-type: persoon → wandel, boot → boot, enz.).
   const urlPreset = p.get('laag');
@@ -226,6 +233,17 @@ export default function TrackerKaart() {
       routes: start.types ? false : (t === 'BOAT'),
     }]))
   );
+  // RNH-modus: alleen trackers die via de RNH Tracker-app meevaren (trackerBron === 'rnh')
+  const [rnhModus, setRnhModus] = useState(!!start.rnh);
+  const toggleRnh = () => {
+    if (rnhModus) { setRnhModus(false); return; }
+    setRnhModus(true);
+    kiesPreset('boot');
+    setTypeOpties(prev => Object.fromEntries(Object.keys(prev).map(t => [t, {
+      zichtbaar: t === 'BOAT', routes: t === 'BOAT' ? prev[t].routes : false,
+    }])));
+    setZoomDoel(RNH_GEBIED);
+  };
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
   const [gemeld, setGemeld] = useState({}); // { trackerId: 'confirm'|'bezig'|'ok'|'fout' }
 
@@ -275,6 +293,11 @@ export default function TrackerKaart() {
     p.set('z', String(Math.round(huidigeView.zoom)));
     if (preset !== 'standaard') p.set('laag', preset);
     if (zichtbaar.length < Object.keys(typeOpties).length) p.set('types', zichtbaar.join(','));
+    if (rnhModus) {
+      // RNH-weergave delen als vaste link (zelfde uitsnede voor iedereen)
+      p.delete('lat'); p.delete('lon'); p.delete('z'); p.delete('laag'); p.delete('types');
+      p.set('rnh', '1');
+    }
     const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url)
@@ -352,8 +375,9 @@ export default function TrackerKaart() {
   };
 
   // Routes per type ophalen wanneer ingeschakeld
-  const positiesRef = useRef(posities);
-  positiesRef.current = posities;
+  const getoond = rnhModus ? posities.filter(p => p.trackerBron === 'rnh') : posities;
+  const positiesRef = useRef(getoond);
+  positiesRef.current = getoond;
   useEffect(() => {
     const actieveTypes = Object.keys(typeOpties).filter(t => typeOpties[t].routes);
     if (actieveTypes.length === 0) { setTypeRoutes({}); return; }
@@ -365,12 +389,12 @@ export default function TrackerKaart() {
           .catch(() => [p.trackerId, []])
       )
     ).then(entries => setTypeRoutes(Object.fromEntries(entries)));
-  }, [typeOpties, routeUur]);
+  }, [typeOpties, routeUur, rnhModus]);
 
-  // Groepeer per type
+  // Groepeer per type (in RNH-modus alleen de RNH-boten)
   const perType = {};
   for (const type of Object.keys(ICOON_CONFIG)) {
-    perType[type] = posities.filter(p => p.type === type);
+    perType[type] = getoond.filter(p => p.type === type);
   }
 
   const zetTypeOptie = (type, key, waarde) =>
@@ -525,6 +549,10 @@ export default function TrackerKaart() {
         <button className="deel-knop" onClick={deelWeergave}
           title="Deel-link naar deze weergave kopiëren">
           {gedeeld ? '✓ Gekopieerd' : '🔗 Deel'}
+        </button>
+        <button className={`deel-knop ${rnhModus ? 'deel-knop-aan' : ''}`} onClick={toggleRnh}
+          title="Ronde om Noord-Holland: alleen boten uit de RNH Tracker-app">
+          {rnhModus ? `⛵ RNH (${perType.BOAT.length}) ✕` : '⛵ RNH'}
         </button>
       </div>
 

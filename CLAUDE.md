@@ -61,7 +61,7 @@ docker-compose.yml · database/init.sql
 | GET | `/api/admin/vliegtuig/icao?reg=` | X-Admin-Key |
 | POST | `/api/mobiel/positie` `{token,lat,lon,snelheid?,koers?,hoogte?}` | toestel-token |
 | POST/DELETE | `/api/mobiel/verwijder` · `/api/mobiel/tracker` `{token}` → wist eigen tracker + posities (5.1.1(v)) | toestel-token |
-| POST | `/api/sleutel/gratis` `{naam?,type?}` → tracker met UUID-token (FREE); rate-limit 5/IP/uur + 200/uur totaal → 429 | nee |
+| POST | `/api/sleutel/gratis` `{naam?,type?,bron?}` → tracker met UUID-token (FREE; `bron` bv. `rnh`, `[a-z0-9-]{1,20}`); rate-limit 5/IP/uur + 200/uur totaal → 429 | nee |
 | POST | `/api/gebruikers/aanmelden` `{externeId,naam?,beheerder?}` (upsert) | nee |
 | GET | `/api/gebruikers` · PUT `/{id}/abonnement` `{abonnement}` · DELETE `/{id}` | X-Admin-Key |
 | POST | `/api/trackers/positie` | JWT (legacy) |
@@ -229,6 +229,16 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
   body `{token}` of header `X-Tracker-Token` → wist tracker + alle posities; 20/IP/uur.
 - Gedeployed + live geverifieerd; oude jar staat als `alltrexx-live-1.0.0.jar.bak-20261107`
   in de NAS-target-map. TEST-trackers 216/217 via admin-API verwijderd.
+
+## RNH-knop + Tracker.bron (25 nov 2026, issue #37)
+- `Tracker.bron` (kolom `bron`, nullable, via `ddl-auto=update`) = herkomst-app van een gratis
+  sleutel (`rnh` = RNH Tracker). Staat los van `Positie.bron` (AISHUB/ADSB/MOBIEL per positie).
+  Kaart-DTO geeft het mee als `trackerBron`.
+- Frontend: knop **⛵ RNH** in de deel-chip → alleen `trackerBron==='rnh'`, bootkaart, uitsnede
+  Noord-Holland; deel-link = `https://alltrexx.live/?rnh=1` (ook `?bron=rnh`).
+- Parcourslijn (optioneel in #37) bewust niet getekend: geen betrouwbare route-data.
+- Gedeployed + e2e geverifieerd (testtracker aangemaakt/gewist); backups
+  `alltrexx-live-1.0.0.jar.bak-20261125` en `frontend/build.bak-20261125` op de NAS.
 
 ## Volgende stappen
 - [ ] alltrexx_mobile koppelen via `/api/mobiel/positie` (toestel-token)

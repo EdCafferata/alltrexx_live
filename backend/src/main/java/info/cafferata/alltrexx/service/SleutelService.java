@@ -25,12 +25,13 @@ public class SleutelService {
     /** Maak een gratis sleutel (token) aan. Geen persoonsgegevens op de server:
      *  alleen een label (naam) en het type; de gebruiker bewaart de token zelf. */
     @Transactional
-    public Tracker maakGratisSleutel(String naam, TrackerType type) {
+    public Tracker maakGratisSleutel(String naam, TrackerType type, String bron) {
         Tracker tracker = Tracker.builder()
             .naam(naam == null || naam.isBlank() ? "Mijn tracker" : naam.trim())
             .type(type == null ? TrackerType.PERSON : type)
             .token(UUID.randomUUID().toString())
             .abonnement("FREE")
+            .bron(bron)
             .actief(true)
             .aangemaakt(LocalDateTime.now())
             .build();

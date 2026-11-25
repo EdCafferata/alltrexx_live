@@ -49,6 +49,11 @@ public class Tracker {
     @Builder.Default
     private String abonnement = "FREE";
 
+    /** Herkomst-app van een gratis sleutel, bijv. "rnh" (RNH Tracker); null = Alltrexx Mobile/handmatig.
+     *  Losstaand van Positie.bron (databron per positie: AISHUB/ADSB/MOBIEL…). */
+    @Column(length = 20)
+    private String bron;
+
     /** Omschrijving / extra info */
     private String omschrijving;
 

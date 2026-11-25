@@ -12,6 +12,8 @@ public class PositieDto {
     private String trackerNaam;
     private TrackerType type;
     private String externeId;
+    /** Herkomst-app van de tracker (Tracker.bron), bijv. "rnh"; null voor overige. */
+    private String trackerBron;
     private double lat;
     private double lon;
     private double snelheid;
@@ -25,6 +27,7 @@ public class PositieDto {
         dto.setTrackerNaam(p.getTracker().getNaam());
         dto.setType(p.getTracker().getType());
         dto.setExterneId(p.getTracker().getExterneId());
+        dto.setTrackerBron(p.getTracker().getBron());
         dto.setLat(p.getLat());
         dto.setLon(p.getLon());
         dto.setSnelheid(p.getSnelheid());
