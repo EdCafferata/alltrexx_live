@@ -585,3 +585,81 @@
   .fab-screensaver .fab-item,
   .fab-screensaver .fab { animation: none; }
 }
+
+/* ── Zeilwedstrijden ─────────────────────────────────────────────────────── */
+.race-knop, .race-actief {
+  position: absolute;
+  top: calc(96px + env(safe-area-inset-top)); /* onder de bron-chips, midden */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(15, 26, 46, 0.82);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  font: inherit;
+}
+.race-knop { padding: 5px 16px 5px 5px; cursor: pointer; text-align: left; }
+.race-knop:hover { background: rgba(15, 26, 46, 0.95); }
+.race-knop-foto {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 20px;
+  background: linear-gradient(180deg, #7cc4f2 0%, #7cc4f2 55%, #1f6fb2 55%, #0b3a66 100%);
+}
+.race-knop-tekst { display: flex; flex-direction: column; line-height: 1.2; font-size: 14px; }
+.race-knop-tekst small { font-size: 11px; color: #9fb2cf; }
+.race-actief { padding: 4px 6px 4px 4px; font-size: 13px; max-width: calc(100vw - 32px); }
+.race-actief img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #fff; }
+
+.race-kort { display: none; }
+.race-actief span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.race-actief button {
+  border: none; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 600;
+  color: #fff; background: rgba(255, 255, 255, 0.14); cursor: pointer;
+}
+.race-actief button:hover { background: rgba(255, 255, 255, 0.26); }
+
+.race-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(5, 10, 20, 0.55);
+}
+.race-paneel {
+  width: min(460px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+  border-radius: 18px; color: #e8eefb; background: #0f1a2e;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.race-hero { position: relative; height: 140px; }
+.race-hero svg { width: 100%; height: 100%; display: block; }
+.race-sluit {
+  position: absolute; top: 10px; right: 10px; width: 32px; height: 32px;
+  border: none; border-radius: 50%; color: #fff; background: rgba(15, 26, 46, 0.6); cursor: pointer;
+}
+.race-inhoud { padding: 16px 18px 18px; }
+.race-inhoud h2 { margin: 0 0 6px; font-size: 19px; }
+.race-inhoud p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; color: #b8c6dd; }
+.race-opties { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.race-optie {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px;
+  color: #fff; background: rgba(255, 255, 255, 0.06); cursor: pointer; text-align: left; font: inherit;
+}
+.race-optie:hover { background: rgba(56, 189, 248, 0.18); border-color: rgba(56, 189, 248, 0.6); }
+.race-optie-aan { border-color: rgba(56, 189, 248, 0.9); }
+.race-optie img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; background: #fff; flex: none; }
+.race-optie span { display: flex; flex-direction: column; gap: 3px; font-size: 15px; }
+.race-optie small { font-size: 12.5px; color: #9fb2cf; line-height: 1.4; }
+.race-inhoud .race-voet { margin: 0; font-size: 12px; color: #8ea2c2; }
+.race-voet a { color: #7dd3fc; }
+/* Mobiel: bovenin is geen ruimte (login, lagen-knop) → onderin, boven de deel-chip. */
+@media (max-width: 640px) {
+  .race-knop, .race-actief { top: auto; bottom: calc(124px + env(safe-area-inset-bottom)); }
+  .race-actief { font-size: 12px; }
+  .race-lang { display: none; }
+  .race-kort { display: inline !important; }
+}

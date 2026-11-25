@@ -135,14 +135,30 @@ function GaNaarEigenLocatie({ doel }) {
 
 // Beginweergave bepalen: eerst uit de URL (?lat&lon&z&laag&types), anders een
 // vastgehouden weergave uit localStorage, anders heel Nederland.
-// Ronde om Noord-Holland: kaartuitsnede (IJmuiden – Den Helder – IJsselmeer – Amsterdam)
-const RNH_GEBIED = [[52.36, 4.45], [53.02, 5.45]];
+// Zeilwedstrijden: elke wedstrijd = boten uit de eigen tracker-app (Tracker.bron) + vaste uitsnede.
+export const WEDSTRIJDEN = {
+  rnh: {
+    naam: 'Ronde om Noord-Holland', kort: 'RNH',
+    tekst: 'Rond Noord-Holland: van IJmuiden via Den Helder over het IJsselmeer.',
+    foto: 'race-rnh.png', app: 'https://apps.apple.com/nl/app/rnh-tracker/id1598986930',
+    gebied: [[52.36, 4.45], [53.02, 5.45]], midden: [52.69, 4.95], zoom: 9,
+  },
+  bvk: {
+    naam: 'Blocq van Kuffeler', kort: 'BVK',
+    tekst: 'De Blocq van Kuffeler-zeilrace op het Markermeer, vanuit Almere.',
+    foto: 'race-bvk.png', app: 'https://apps.apple.com/nl/app/bvk-tracker/id6770708440',
+    gebied: [[52.30, 4.95], [52.62, 5.45]], midden: [52.46, 5.20], zoom: 10,
+  },
+};
+
 
 function leesStartConfig() {
   const p = new URLSearchParams(window.location.search);
-  // ?rnh=1 of ?bron=rnh → alleen boten uit de RNH Tracker-app, zeekaart, Noord-Holland
-  if (p.get('rnh') === '1' || (p.get('bron') || '').toLowerCase() === 'rnh') {
-    return { lat: 52.69, lon: 4.95, zoom: 9, preset: 'boot', types: ['BOAT'], rnh: true, pinned: false, geoZoeken: false };
+  // ?bron=rnh|bvk (of oud: ?rnh=1) → alleen boten uit die wedstrijd-app, zeekaart, eigen gebied
+  const bron = p.get('rnh') === '1' ? 'rnh' : (p.get('bron') || '').toLowerCase();
+  if (WEDSTRIJDEN[bron]) {
+    const w = WEDSTRIJDEN[bron];
+    return { lat: w.midden[0], lon: w.midden[1], zoom: w.zoom, preset: 'boot', types: ['BOAT'], wedstrijd: bron, pinned: false, geoZoeken: false };
   }
   // ?laag=<preset>&types=<TYPE> werkt ook zonder lat/lon (de app-live-kaart geeft die
   // mee op basis van het gekozen tracker-type: persoon → wandel, boot → boot, enz.).
@@ -233,16 +249,18 @@ export default function TrackerKaart() {
       routes: start.types ? false : (t === 'BOAT'),
     }]))
   );
-  // RNH-modus: alleen trackers die via de RNH Tracker-app meevaren (trackerBron === 'rnh')
-  const [rnhModus, setRnhModus] = useState(!!start.rnh);
-  const toggleRnh = () => {
-    if (rnhModus) { setRnhModus(false); return; }
-    setRnhModus(true);
+  // Wedstrijd-modus: alleen trackers uit de gekozen wedstrijd-app (trackerBron === 'rnh'/'bvk')
+  const [wedstrijd, setWedstrijd] = useState(start.wedstrijd || null);
+  const [wedstrijdKiezer, setWedstrijdKiezer] = useState(false);
+  const kiesWedstrijd = (bron) => {
+    setWedstrijdKiezer(false);
+    setWedstrijd(bron);
+    if (!bron) return;
     kiesPreset('boot');
     setTypeOpties(prev => Object.fromEntries(Object.keys(prev).map(t => [t, {
       zichtbaar: t === 'BOAT', routes: t === 'BOAT' ? prev[t].routes : false,
     }])));
-    setZoomDoel(RNH_GEBIED);
+    setZoomDoel(WEDSTRIJDEN[bron].gebied);
   };
   const [typeRoutes, setTypeRoutes] = useState({}); // { trackerId: [[lat,lon],...] }
   const [gemeld, setGemeld] = useState({}); // { trackerId: 'confirm'|'bezig'|'ok'|'fout' }
@@ -293,10 +311,10 @@ export default function TrackerKaart() {
     p.set('z', String(Math.round(huidigeView.zoom)));
     if (preset !== 'standaard') p.set('laag', preset);
     if (zichtbaar.length < Object.keys(typeOpties).length) p.set('types', zichtbaar.join(','));
-    if (rnhModus) {
-      // RNH-weergave delen als vaste link (zelfde uitsnede voor iedereen)
+    if (wedstrijd) {
+      // Wedstrijd-weergave delen als vaste link (zelfde uitsnede voor iedereen)
       p.delete('lat'); p.delete('lon'); p.delete('z'); p.delete('laag'); p.delete('types');
-      p.set('rnh', '1');
+      p.set('bron', wedstrijd);
     }
     const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
     if (navigator.clipboard) {
@@ -375,7 +393,7 @@ export default function TrackerKaart() {
   };
 
   // Routes per type ophalen wanneer ingeschakeld
-  const getoond = rnhModus ? posities.filter(p => p.trackerBron === 'rnh') : posities;
+  const getoond = wedstrijd ? posities.filter(p => p.trackerBron === wedstrijd) : posities;
   const positiesRef = useRef(getoond);
   positiesRef.current = getoond;
   useEffect(() => {
@@ -389,9 +407,9 @@ export default function TrackerKaart() {
           .catch(() => [p.trackerId, []])
       )
     ).then(entries => setTypeRoutes(Object.fromEntries(entries)));
-  }, [typeOpties, routeUur, rnhModus]);
+  }, [typeOpties, routeUur, wedstrijd]);
 
-  // Groepeer per type (in RNH-modus alleen de RNH-boten)
+  // Groepeer per type (in wedstrijd-modus alleen de boten van die wedstrijd)
   const perType = {};
   for (const type of Object.keys(ICOON_CONFIG)) {
     perType[type] = getoond.filter(p => p.type === type);
@@ -550,11 +568,61 @@ export default function TrackerKaart() {
           title="Deel-link naar deze weergave kopiëren">
           {gedeeld ? '✓ Gekopieerd' : '🔗 Deel'}
         </button>
-        <button className={`deel-knop ${rnhModus ? 'deel-knop-aan' : ''}`} onClick={toggleRnh}
-          title="Ronde om Noord-Holland: alleen boten uit de RNH Tracker-app">
-          {rnhModus ? `⛵ RNH (${perType.BOAT.length}) ✕` : '⛵ RNH'}
-        </button>
       </div>
+
+      {/* ── Zeilwedstrijden (bovenaan midden) ─────────────────────────────── */}
+      {wedstrijd ? (
+        <div className="race-actief">
+          <img src={`${process.env.PUBLIC_URL}/${WEDSTRIJDEN[wedstrijd].foto}`} alt="" />
+          <span><b className="race-lang">{WEDSTRIJDEN[wedstrijd].naam}</b><b className="race-kort">{WEDSTRIJDEN[wedstrijd].kort}</b> · {perType.BOAT.length} {perType.BOAT.length === 1 ? 'boot' : 'boten'} live</span>
+          <button onClick={() => setWedstrijdKiezer(true)} title="Andere wedstrijd kiezen">Wissel</button>
+          <button onClick={() => kiesWedstrijd(null)} title="Alle trackers weer tonen" aria-label="Sluiten">✕</button>
+        </div>
+      ) : (
+        <button className="race-knop" onClick={() => setWedstrijdKiezer(true)}>
+          <span className="race-knop-foto" aria-hidden="true">⛵</span>
+          <span className="race-knop-tekst"><b>Zeilwedstrijden</b><small>Volg de boten live</small></span>
+        </button>
+      )}
+
+      {wedstrijdKiezer && (
+        <div className="race-overlay" onClick={() => setWedstrijdKiezer(false)}>
+          <div className="race-paneel" role="dialog" aria-label="Zeilwedstrijden" onClick={e => e.stopPropagation()}>
+            <div className="race-hero">
+              <svg viewBox="0 0 400 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <defs>
+                  <linearGradient id="raceLucht" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7cc4f2"/><stop offset="1" stopColor="#d9efff"/></linearGradient>
+                  <linearGradient id="raceZee" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1f6fb2"/><stop offset="1" stopColor="#0b3a66"/></linearGradient>
+                </defs>
+                <rect width="400" height="140" fill="url(#raceLucht)"/>
+                <circle cx="330" cy="34" r="16" fill="#fff4c2"/>
+                <rect y="92" width="400" height="48" fill="url(#raceZee)"/>
+                <g fill="#fff"><path d="M120 88 L120 30 L156 88Z"/><path d="M116 88 L116 42 L94 88Z" opacity=".85"/></g>
+                <path d="M88 90 L162 90 L154 98 L96 98Z" fill="#0f1a2e"/>
+                <g fill="#fff" transform="translate(190 8) scale(.7)"><path d="M120 88 L120 30 L156 88Z"/><path d="M116 88 L116 42 L94 88Z" opacity=".85"/><path d="M88 90 L162 90 L154 98 L96 98Z" fill="#0f1a2e"/></g>
+                <g fill="#fff" transform="translate(40 40) scale(.45)"><path d="M120 88 L120 30 L156 88Z"/><path d="M88 90 L162 90 L154 98 L96 98Z" fill="#0f1a2e"/></g>
+                <path d="M0 104 Q20 100 40 104 T80 104 T120 104 T160 104 T200 104 T240 104 T280 104 T320 104 T360 104 T400 104" stroke="#ffffff55" strokeWidth="2" fill="none"/>
+              </svg>
+              <button className="race-sluit" onClick={() => setWedstrijdKiezer(false)} aria-label="Sluiten">✕</button>
+            </div>
+            <div className="race-inhoud">
+              <h2>Zeilwedstrijden live volgen</h2>
+              <p>Deelnemers varen mee met de gratis tracker-app van hun wedstrijd. Kies een wedstrijd en zie alle boten live op de zeekaart.</p>
+              <div className="race-opties">
+                {Object.entries(WEDSTRIJDEN).map(([bron, w]) => (
+                  <button key={bron} className={`race-optie ${wedstrijd === bron ? 'race-optie-aan' : ''}`} onClick={() => kiesWedstrijd(bron)}>
+                    <img src={`${process.env.PUBLIC_URL}/${w.foto}`} alt="" />
+                    <span><b>{w.naam}</b><small>{w.tekst}</small></span>
+                  </button>
+                ))}
+              </div>
+              <p className="race-voet">Zelf meevaren? Installeer de{' '}
+                <a href={WEDSTRIJDEN.rnh.app} target="_blank" rel="noopener noreferrer">RNH Tracker</a> of de{' '}
+                <a href={WEDSTRIJDEN.bvk.app} target="_blank" rel="noopener noreferrer">BVK Tracker</a> en zet in Voorkeuren Alltrexx.live aan.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Lagen-paneel (rechtsboven) ────────────────────────────────────── */}
       <button className="lagen-knop" onClick={() => setLagenOpen(!lagenOpen)}

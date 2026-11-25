@@ -234,8 +234,11 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
 - `Tracker.bron` (kolom `bron`, nullable, via `ddl-auto=update`) = herkomst-app van een gratis
   sleutel (`rnh` = RNH Tracker). Staat los van `Positie.bron` (AISHUB/ADSB/MOBIEL per positie).
   Kaart-DTO geeft het mee als `trackerBron`.
-- Frontend: knop **⛵ RNH** in de deel-chip → alleen `trackerBron==='rnh'`, bootkaart, uitsnede
-  Noord-Holland; deel-link = `https://alltrexx.live/?rnh=1` (ook `?bron=rnh`).
+- Frontend (bijgewerkt 25 nov 2026): knop **⛵ Zeilwedstrijden** (boven midden; mobiel onderin) opent
+  een kiezer met illustratie + tekst + twee opties: **RNH** (Ronde om Noord-Holland, `trackerBron==='rnh'`)
+  en **BVK** (Blocq van Kuffeler, Markermeer, `trackerBron==='bvk'`). Config in `WEDSTRIJDEN`
+  (TrackerKaart.js) — nieuwe wedstrijd = één entry + `public/race-<bron>.png`. Deel-links:
+  `https://alltrexx.live/?bron=rnh` / `?bron=bvk` (oud `?rnh=1` werkt nog).
 - Parcourslijn (optioneel in #37) bewust niet getekend: geen betrouwbare route-data.
 - Gedeployed + e2e geverifieerd (testtracker aangemaakt/gewist); backups
   `alltrexx-live-1.0.0.jar.bak-20261125` en `frontend/build.bak-20261125` op de NAS.
