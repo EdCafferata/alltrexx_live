@@ -112,6 +112,7 @@
 }
 
 .lagen-knop:hover { transform: scale(1.06); }
+.lagen-icoon { width: 76%; height: 76%; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
 
 .lagen-paneel {
   position: absolute;
@@ -457,6 +458,20 @@
   font-size: 13px;
   color: #333;
 }
+
+.fab-menu-rij { display: flex; align-items: center; gap: 6px; }
+.fab-menu-rij input { flex: 0 0 auto; margin: 0; cursor: pointer; }
+.fab-selectie-knoppen { display: flex; gap: 6px; margin: 6px 0 2px; }
+.fab-selectie-knoppen button {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.6);
+  font-size: 12px;
+  cursor: pointer;
+}
+.fab-selectie-knoppen button:hover { background: rgba(255,255,255,0.9); }
 
 .fab-menu-tracker:hover {
   background: rgba(255,255,255,0.5);

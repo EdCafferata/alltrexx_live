@@ -116,8 +116,9 @@ function ZoomNaar({ doel }) {
 }
 
 // Hulpcomponent: houdt de huidige kaartweergave (center + zoom) bij
-function ViewVolger({ onWijzig }) {
+function ViewVolger({ onWijzig, onKlik }) {
   const map = useMapEvents({
+    click: () => onKlik && onKlik(),
     moveend: () => { const c = map.getCenter(); onWijzig({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }); },
     zoomend: () => { const c = map.getCenter(); onWijzig({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }); },
   });
@@ -249,6 +250,17 @@ export default function TrackerKaart() {
       routes: start.types ? false : (t === 'BOAT'),
     }]))
   );
+  // Per tracker een vinkje (#41): verborgen trackerId's. Nieuwe trackers staan standaard aan.
+  const [verborgen, setVerborgen] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('alltrexx-verborgen') || '[]')); }
+    catch { return new Set(); }
+  });
+  const zetVerborgen = (wijzig) => setVerborgen(prev => {
+    const nieuw = new Set(prev);
+    wijzig(nieuw);
+    try { localStorage.setItem('alltrexx-verborgen', JSON.stringify([...nieuw])); } catch { /* geen opslag */ }
+    return nieuw;
+  });
   // Wedstrijd-modus: alleen trackers uit de gekozen wedstrijd-app (trackerBron === 'rnh'/'bvk')
   const [wedstrijd, setWedstrijd] = useState(start.wedstrijd || null);
   const [wedstrijdKiezer, setWedstrijdKiezer] = useState(false);
@@ -436,14 +448,15 @@ export default function TrackerKaart() {
         )}
 
         <ZoomNaar doel={zoomDoel} />
-        <ViewVolger onWijzig={setHuidigeView} />
+        <ViewVolger onWijzig={setHuidigeView}
+          onKlik={() => { setLagenOpen(false); setOpenPaneel(null); setFabZoek(''); }} />
         <GaNaarEigenLocatie doel={eigenLocatie} />
 
         {/* Markers per type */}
         {Object.entries(ICOON_CONFIG).map(([type, cfg]) =>
           typeOpties[type].zichtbaar && (
             <LayerGroup key={type}>
-              {perType[type].map(pos => (
+              {perType[type].filter(pos => !verborgen.has(pos.trackerId)).map(pos => (
                 <Marker
                   key={pos.trackerId}
                   position={[pos.lat, pos.lon]}
@@ -493,7 +506,7 @@ export default function TrackerKaart() {
         {Object.entries(ICOON_CONFIG).map(([type, cfg]) =>
           typeOpties[type].routes && (
             <LayerGroup key={`route-${type}`}>
-              {perType[type].map(pos => {
+              {perType[type].filter(pos => !verborgen.has(pos.trackerId)).map(pos => {
                 const lijn = typeRoutes[pos.trackerId];
                 return lijn && lijn.length > 1 && (
                   <Polyline key={pos.trackerId} positions={lijn}
@@ -626,7 +639,22 @@ export default function TrackerKaart() {
 
       {/* ── Lagen-paneel (rechtsboven) ────────────────────────────────────── */}
       <button className="lagen-knop" onClick={() => setLagenOpen(!lagenOpen)}
-        title="Kaartlagen">🗺️</button>
+        title="Kaartlagen" aria-label="Kaartlagen">
+        {/* Kaart-icoon in Apple-stijl: afgeronde tegel met land, water, weg en speld */}
+        <svg viewBox="0 0 64 64" className="lagen-icoon" aria-hidden="true">
+          <defs>
+            <clipPath id="lagenTegel"><rect width="64" height="64" rx="14" /></clipPath>
+          </defs>
+          <g clipPath="url(#lagenTegel)">
+            <rect width="64" height="64" fill="#e8f1dc" />
+            <path d="M0 40 C14 34 22 46 36 42 S56 30 64 34 V64 H0Z" fill="#9fd3f5" />
+            <path d="M40 0 L44 0 L28 64 L24 64Z" fill="#f6c443" />
+            <path d="M0 20 L64 14 L64 18 L0 24Z" fill="#ffffff" />
+          </g>
+          <path d="M40 12 a9 9 0 0 1 9 9 c0 7 -9 15 -9 15 s-9 -8 -9 -15 a9 9 0 0 1 9 -9z" fill="#ff3b30" />
+          <circle cx="40" cy="21" r="3.4" fill="#fff" />
+        </svg>
+      </button>
 
       {lagenOpen && (
         <div className="lagen-paneel">
@@ -735,13 +763,29 @@ export default function TrackerKaart() {
                     placeholder={`🔎 Zoek ${cfg.label.toLowerCase()} of MMSI…`}
                     value={fabZoek} onChange={e => setFabZoek(e.target.value)} />
                 )}
+                {zichtbareTrackers.length > 0 && (
+                  <div className="fab-selectie-knoppen">
+                    <button onClick={() => zetVerborgen(s => zichtbareTrackers.forEach(p => s.delete(p.trackerId)))}>
+                      ☑︎ Alle
+                    </button>
+                    <button onClick={() => zetVerborgen(s => zichtbareTrackers.forEach(p => s.add(p.trackerId)))}>
+                      ☐ Wissen
+                    </button>
+                  </div>
+                )}
                 <div className="fab-menu-lijst">
                   {zichtbareTrackers.map(pos => (
-                    <button key={pos.trackerId} className="fab-menu-tracker"
-                      onClick={() => { setZoomDoel([[pos.lat, pos.lon]]); setGeselecteerd(pos); }}>
-                      {pos.trackerNaam}
-                      <span>{pos.snelheid.toFixed(0)} km/u</span>
-                    </button>
+                    <div key={pos.trackerId} className="fab-menu-rij">
+                      <input type="checkbox" checked={!verborgen.has(pos.trackerId)}
+                        aria-label={`${pos.trackerNaam} tonen`}
+                        onChange={e => zetVerborgen(s => e.target.checked
+                          ? s.delete(pos.trackerId) : s.add(pos.trackerId))} />
+                      <button className="fab-menu-tracker"
+                        onClick={() => { setZoomDoel([[pos.lat, pos.lon]]); setGeselecteerd(pos); }}>
+                        {pos.trackerNaam}
+                        <span>{pos.snelheid.toFixed(0)} km/u</span>
+                      </button>
+                    </div>
                   ))}
                   {perType[type].length === 0 && (
                     <div className="fab-menu-leeg">Geen actieve trackers</div>
