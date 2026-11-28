@@ -246,8 +246,7 @@ git -C /Volumes/Backup-Ed/AI/alltrexx_live pull origin main
 ## Kaart-UI: logo, kaart-icoon, vinkjes per tracker (28 nov 2026, issues #38-#41)
 - Logo/favicon/apple-touch-icon = `Icon.png` van alltrexx_mobile, verkleind met `sips` (#38).
 - `.lagen-knop` toont een inline SVG in Apple-stijl i.p.v. de wereldkaart-emoji (#39, wacht op Eds oordeel).
-- Klik op lege kaart sluit lagenpaneel + categoriemenu (`ViewVolger.onKlik`); het afspeelpaneel van een
-  gekozen tracker blijft bewust nog open (#40, vraag aan Ed).
+- Klik op lege kaart sluit lagenpaneel, categoriemenu én afspeelpaneel (`ViewVolger.onKlik`) (#40).
 - Vinkje per tracker + Alle/Wissen per categorie (`verborgen`-Set, localStorage `alltrexx-verborgen`) (#41).
 - Alleen frontend; live zonder container-restart. Backup op de NAS: `frontend/build.bak-20261128`.
 

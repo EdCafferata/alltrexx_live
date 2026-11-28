@@ -449,7 +449,7 @@ export default function TrackerKaart() {
 
         <ZoomNaar doel={zoomDoel} />
         <ViewVolger onWijzig={setHuidigeView}
-          onKlik={() => { setLagenOpen(false); setOpenPaneel(null); setFabZoek(''); }} />
+          onKlik={() => { setLagenOpen(false); setOpenPaneel(null); setFabZoek(''); setAfSpelen(false); setGeselecteerd(null); }} />
         <GaNaarEigenLocatie doel={eigenLocatie} />
 
         {/* Markers per type */}
